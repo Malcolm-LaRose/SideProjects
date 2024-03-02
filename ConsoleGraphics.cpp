@@ -184,9 +184,8 @@ void outputNLines(int n) {
 
 }
 
+void TicTacToe() {
 
-int main()
-{
     /*outputNLines(2);
     outputCenteredText("Mal Tac Toe!");
     outputNLines(4);
@@ -214,7 +213,14 @@ int main()
 
     }
 
+}
 
+
+int main()
+{
+    
+
+    TicTacToe();
 
 
 
