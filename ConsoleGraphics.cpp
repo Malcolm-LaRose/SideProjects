@@ -15,7 +15,7 @@ public:
     // Constructor to initialize with empty cells
     gameData() : board(3, std::vector<char>(3, ' ')), firstPlayer(' '), secondPlayer(' '), currentPlayer(firstPlayer) {}
 
-    char validateInput(std::string message) {
+    char validateCharInput(std::string message) {
         char playerInput;
 
         // Keep asking until valid input is received
@@ -39,11 +39,33 @@ public:
             }
         }
     }
+
+    int validateIntInput(std::string message) {
+        char playerInput;
+
+        // Keep asking until valid input is received
+        while (true) {
+            std::cout << message << std::endl;
+            std::cin >> playerInput;
+
+            // Validate input
+            if (playerInput >= 1 && playerInput <= 3) {
+                return playerInput;
+            }
+            else {
+                // Invalid input
+                std::cout << "Invalid input! Please enter a number between 1 and 3 only. Try again." << std::endl;
+                // Clear input buffer
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+    }
     
 
     char choosePlayerOne() {
        
-        return validateInput("Should 'X' or 'O' go first?");
+        return validateCharInput("Should 'X' or 'O' go first?");
 
     }
 
@@ -97,10 +119,24 @@ public:
         // Loop until valid input is received
         while (true) {
             std::cout << "Enter the row: ";
-            std::cin >> playerInput.first;
+            while (!(std::cin >> playerInput.first)) {
+                // Clear the error flag and ignore the invalid input
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                // Prompt the user to enter a valid integer
+                std::cout << "Invalid input! Please enter an integer: ";
+            }
 
             std::cout << "Enter the column: ";
-            std::cin >> playerInput.second;
+            while (!(std::cin >> playerInput.second)) {
+                // Clear the error flag and ignore the invalid input
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                // Prompt the user to enter a valid integer
+                std::cout << "Invalid input! Please enter an integer: ";
+            }
 
 
             // Check if the input is within valid range (1 to 3 for a 3x3 matrix)
