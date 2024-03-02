@@ -85,17 +85,10 @@ public:
 
     }
 
+
     void printPlayers() {
         std::cout << "Player One: " << firstPlayer << std::endl;
         std::cout << "Player Two: " << secondPlayer << std::endl;
-    }
-
-
-    // Function to set the game state without default parameters
-    void setGameState(int row, int col, char symbol) {
-        if (row >= 1 && row <= 3 && col >= 1 && col <= 3) { // Validates input
-            board[row - 1][col - 1] = symbol; // Places symbol
-        }
     }
 
     // Function to display the game board
@@ -111,6 +104,21 @@ public:
             if (i < 2) std::cout << horizontalSeparator;
         }
     }
+
+    void endGame() {
+        displayGameBoard();
+        std::cout << std::endl << "Thanks for playing!" << std::endl;
+        exit(0);
+    }
+
+
+    // Function to set the game state without default parameters
+    void setGameState(int row, int col, char symbol) {
+        if (row >= 1 && row <= 3 && col >= 1 && col <= 3) { // Validates input
+            board[row - 1][col - 1] = symbol; // Places symbol
+        }
+    }
+
 
     void getPlayerMove() {
         std::cout << "Player " << currentPlayer << ", choose a square! Matrix input rules apply." << std::endl;
@@ -174,20 +182,76 @@ public:
     }
 
     void checkForWin() {
-        if (/*Win conditions*/ true) {
-            // Declare a player a winner
-            // Ask to play again? (maybe)
+        char winner = ' '; // Initialize the winner variable
 
+        // Check row and column win conditions
+        for (int i = 0; i < 3; ++i) {
+            // Check horizontal win conditions
+            if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != ' ') {
+                winner = board[i][0]; // Set the winner
+                break; // Exit the loop if a winner is found
+            }
+
+            // Check vertical win conditions
+            if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ') {
+                winner = board[0][i]; // Set the winner
+                break; // Exit the loop if a winner is found
+            }
         }
-        
+
+        // Check diagonal win conditions
+        if ((board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' ') ||
+            (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' ')) {
+            winner = board[1][1]; // Set the winner
+        }
+
+        // Declare the winner if found
+        if (winner != ' ') {
+            std::cout << "Player " << winner << " has won!" << std::endl;
+            endGame();
+        }
     }
 
-    void gameLoop() {
+    void checkForCat() {
+        // Loop through every square
+        // If no square is empty, end game as cat
+
+        bool catFound = false;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                if (board[i][j] != ' ') {
+                    return; // Stop looking for a cat, board isn't full
+                }
+                else {
+                    std::cout << "The game ends in a cat!" << std::endl;
+                    endGame();
+                }
+            }
+        }
+    
+    }
+
+    void gameLoop(gameData tttGame) {
         bool validGameState = true;
+        bool winningGameState = false;
 
-        while (validGameState) {
+        while (validGameState && (!winningGameState)) {
 
 
+            // Take first turn
+            // Proceed through sequence of turns
+            // Check for illegal moves
+            // Check for winning moves
+            // Check for a full board
+            // Display results
+
+            tttGame.displayGameBoard();
+            tttGame.getPlayerMove();
+            tttGame.checkForWin();
+            tttGame.incrementPlayersTurn();
 
         }
     
@@ -231,23 +295,8 @@ void TicTacToe() {
     GameData.initializePlayers();
     GameData.printPlayers();
 
-    // Take first turn
-    // Proceed through sequence of turns
-    // Check for illegal moves
-    // Check for winning moves
-    // Check for a full board
-    // Display results
 
-
-    bool validGameState = true;
-
-    while (validGameState) {
-
-        GameData.displayGameBoard();
-        GameData.getPlayerMove();
-        GameData.incrementPlayersTurn();
-
-    }
+    GameData.gameLoop(GameData);
 
 }
 
