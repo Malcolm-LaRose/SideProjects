@@ -137,6 +137,15 @@ public:
 
     }
 
+    void checkForWin() {
+        if (/*Win conditions*/ true) {
+            // Declare a player a winner
+            // Ask to play again? (maybe)
+
+        }
+        
+    }
+
     void gameLoop() {
         bool validGameState = true;
 
@@ -161,9 +170,6 @@ private:
     char firstPlayer;
     char secondPlayer;
     char currentPlayer;
-
-
-    
 
 };
 
