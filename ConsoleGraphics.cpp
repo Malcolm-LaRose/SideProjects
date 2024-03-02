@@ -10,11 +10,10 @@ void outputPaddedText(std::string inputText, int padding) {
 }
 
 
-
 class gameData {
 public:
     // Constructor to initialize with empty cells
-    gameData() : board(3, std::vector<char>(3, ' ')), firstPlayer(' '), secondPlayer(' ') {}
+    gameData() : board(3, std::vector<char>(3, ' ')), firstPlayer(' '), secondPlayer(' '), currentPlayer(firstPlayer) {}
 
     char validateInput(std::string message) {
         char playerInput;
@@ -60,6 +59,8 @@ public:
             secondPlayer = 'X';
         }
 
+        currentPlayer = firstPlayer;
+
     }
 
     void printPlayers() {
@@ -67,7 +68,8 @@ public:
         std::cout << "Player Two: " << secondPlayer << std::endl;
     }
 
-    // Function to set the game state
+
+    // Function to set the game state without default parameters
     void setGameState(int row, int col, char symbol) {
         if (row >= 1 && row <= 3 && col >= 1 && col <= 3) { // Validates input
             board[row - 1][col - 1] = symbol; // Places symbol
@@ -80,12 +82,70 @@ public:
         for (int i = 0; i < 3; ++i) {
             std::cout << " ";
             for (int j = 0; j < 3; ++j) {
-                std::cout << " " << board[i][j] << " "; // Adjust setw to 2 for proper spacing
+                std::cout << " " << board[i][j] << " "; // Output the value of each cell in the game state
                 if (j < 2) std::cout << "|";
             }
             std::cout << std::endl;
             if (i < 2) std::cout << horizontalSeparator;
         }
+    }
+
+    void getPlayerMove() {
+        std::cout << "Player " << currentPlayer << ", choose a square! Matrix input rules apply." << std::endl;
+        std::pair<int, int> playerInput;
+
+        // Loop until valid input is received
+        while (true) {
+            std::cout << "Enter the row: ";
+            std::cin >> playerInput.first;
+
+            std::cout << "Enter the column: ";
+            std::cin >> playerInput.second;
+
+
+            // Check if the input is within valid range (1 to 3 for a 3x3 matrix)
+            if (playerInput.first >= 1 && playerInput.first <= 3 &&
+                playerInput.second >= 1 && playerInput.second <= 3) {
+                // Simplify names
+                int row = playerInput.first;
+                int col = playerInput.second;
+                // Check if the selected cell is empty
+                if (board[row - 1][col - 1] == ' ') {
+                    // Set the game state and break out of the loop
+                    setGameState(row, col, currentPlayer);
+                    break;
+                }
+                else {
+                    // Cell is already occupied, prompt the player to choose again
+                    std::cout << "Selected cell is already occupied! Choose another cell." << std::endl;
+                }
+            }
+            else {
+                // Invalid input, prompt the player again
+                std::cout << "Invalid input! Row and column must be between 1 and 3." << std::endl;
+            }
+        }
+    }
+
+    void incrementPlayersTurn() {
+        if (currentPlayer == 'X') {
+            currentPlayer = 'O';
+        }
+        else {
+            currentPlayer = 'X';
+        }
+
+    }
+
+    void gameLoop() {
+        bool validGameState = true;
+
+        while (validGameState) {
+
+
+
+        }
+    
     }
 
 /*std::string board =
@@ -100,6 +160,9 @@ private:
     std::vector<std::vector<char>> board;
     char firstPlayer;
     char secondPlayer;
+    char currentPlayer;
+
+
     
 
 };
@@ -134,7 +197,16 @@ int main()
     // Check for a full board
     // Display results
 
-    GameData.displayGameBoard();
+
+    bool validGameState = true;
+
+    while (validGameState) {
+
+        GameData.displayGameBoard();
+        GameData.getPlayerMove();
+        GameData.incrementPlayersTurn();
+
+    }
 
 
 
