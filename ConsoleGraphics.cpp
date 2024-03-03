@@ -9,6 +9,16 @@ void outputPaddedText(std::string inputText, int padding) {
     std::cout << std::string(padding, ' ') << inputText << std::endl;
 }
 
+void outputNLines(int n) {
+
+    int i = 0;
+    while (i < n) {
+        std::cout << '\n';
+        i++;
+    }
+
+}
+
 
 class gameData {
 public:
@@ -38,6 +48,32 @@ public:
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
         }
+    }
+
+    char validateYesNoInput(std::string message) {
+        char playerInput;
+
+        // Keep asking until valid input is received
+        while (true) {
+            std::cout << message << std::endl;
+            std::cin >> playerInput;
+
+            // Convert to uppercase for caseless comparison
+            playerInput = std::toupper(playerInput);
+
+            // Validate input
+            if (playerInput == 'Y' || playerInput == 'N') {
+                return playerInput;
+            }
+            else {
+                // Invalid input
+                std::cout << "Invalid input! Please enter 'Y' or 'N' only. Try again." << std::endl;
+                // Clear input buffer
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+    
     }
 
     int validateIntInput(std::string message) {
@@ -234,9 +270,12 @@ public:
     
     }
 
-    void gameLoop(gameData tttGame) {
+    void gameLoop(gameData& tttGame) {
         bool validGameState = true;
         bool winningGameState = false;
+
+        tttGame.initializePlayers();
+        tttGame.printPlayers();
 
         while (validGameState && (!winningGameState)) {
 
@@ -250,12 +289,50 @@ public:
 
             tttGame.displayGameBoard();
             tttGame.getPlayerMove();
+            tttGame.checkForCat();
             tttGame.checkForWin();
             tttGame.incrementPlayersTurn();
 
         }
     
     }
+
+
+    void mainMenu(gameData& tictactoe) {
+        bool menuState = true;
+        bool firstGame = true;
+
+
+
+        while (menuState) {
+            std::cout << "Tic Tac Toe!";
+            outputNLines(2);
+            std::cout << "Main Menu" << std::endl;
+
+            if (firstGame) {
+                firstGame = false;
+                gameLoop(tictactoe);
+            }
+            else {
+                char playAgainYN = ' ';
+                playAgainYN = validateYesNoInput("Would you like to play again?");
+                if (playAgainYN == 'Y') {
+                    mainMenu(tictactoe);
+                }
+                else if (playAgainYN == 'N') {
+                    endGame();
+                }
+                else {
+                    std::cout << "How did you get here?";
+                }
+                
+            }
+
+        }
+
+    }
+
+
 
 /*std::string board =
     "   |   |   \n"
@@ -274,15 +351,7 @@ private:
 };
 
 
-void outputNLines(int n) {
 
-    int i = 0;
-    while (i < n) {
-        std::cout << '\n';
-        i++;
-    }
-
-}
 
 void TicTacToe() {
 
@@ -292,11 +361,9 @@ void TicTacToe() {
     emptyGameBoard();*/
 
     gameData GameData;
-    GameData.initializePlayers();
-    GameData.printPlayers();
 
 
-    GameData.gameLoop(GameData);
+    GameData.mainMenu(GameData);
 
 }
 
@@ -306,8 +373,6 @@ int main()
     
 
     TicTacToe();
-
-
 
     return 0;
 }
