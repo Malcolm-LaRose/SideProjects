@@ -252,20 +252,28 @@ public:
         // Loop through every square
         // If no square is empty, end game as cat
 
-        bool catFound = false;
+        bool catFound = true;
 
         for (int i = 0; i < 3; ++i)
         {
             for (int j = 0; j < 3; ++j)
             {
-                if (board[i][j] != ' ') {
-                    return; // Stop looking for a cat, board isn't full
+                if (board[i][j] == ' ') {
+                    catFound = false;
+                    break; // Stop looking for a cat, board isn't full
                 }
-                else {
-                    std::cout << "The game ends in a cat!" << std::endl;
-                    endGame();
-                }
+                
             }
+        }
+
+        if (catFound == false) {
+            return;
+
+        }
+        else {
+
+            std::cout << "The game ends in a cat!" << std::endl;
+            endGame();
         }
     
     }
@@ -289,8 +297,8 @@ public:
 
             tttGame.displayGameBoard();
             tttGame.getPlayerMove();
-            tttGame.checkForCat();
             tttGame.checkForWin();
+            tttGame.checkForCat();
             tttGame.incrementPlayersTurn();
 
         }
