@@ -10,17 +10,99 @@ public:
 
 	// Input handling
 
-	char validateCharInput() {}
+	char validateCharInput(std::string message) {
+		char playerInput;
 
-	char validateYesNoInput() {}
+		// Keep asking until valid input is received
+		while (true) {
+			std::cout << message << std::endl;
+			std::cin >> playerInput;
 
-	int validateIntInput() {}
+			// Convert to uppercase for caseless comparison
+			playerInput = std::toupper(playerInput);
+
+			// Validate input
+			if (playerInput == 'X' || playerInput == 'O') {
+				return playerInput;
+			}
+			else {
+				// Invalid input
+				std::cout << "Invalid input! Please enter 'X' or 'O' only. Try again." << std::endl;
+				// Clear input buffer
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			}
+		}
+	}
+
+	char validateYesNoInput(std::string message) {
+		char playerInput;
+
+		// Keep asking until valid input is received
+		while (true) {
+			std::cout << message << std::endl;
+			std::cin >> playerInput;
+
+			// Convert to uppercase for caseless comparison
+			playerInput = std::toupper(playerInput);
+
+			// Validate input
+			if (playerInput == 'Y' || playerInput == 'N') {
+				return playerInput;
+			}
+			else {
+				// Invalid input
+				std::cout << "Invalid input! Please enter 'Y' or 'N' only. Try again." << std::endl;
+				// Clear input buffer
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			}
+		}
+	}
+
+	int validateIntInput(std::string message, int lowBound, int highBound) {
+		char playerInput;
+
+		// Keep asking until valid input is received
+		while (true) {
+			std::cout << message << std::endl;
+			std::cin >> playerInput;
+
+			// Validate input
+			if (playerInput >= 1 && playerInput <= 7) {
+				return playerInput;
+			}
+			else {
+				// Invalid input
+				std::cout << "Invalid input! Please enter a number between " << lowBound <<" and " << highBound << " only. Try again." << std::endl;
+				// Clear input buffer
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			}
+		}
+	}
 
 	// Gameplay
 
-	char choosePlayerOne() {}
+	char choosePlayerOne() {
+	
+		return validateCharInput("Should X or O go first ? ");
+	}
 
-	void initPlayers() {}
+	void initPlayers() {
+	
+		playerOne = choosePlayerOne();
+
+		if (playerOne == 'X') {
+			playerTwo == 'O';
+		}
+		else {
+			playerTwo = 'X';
+		}
+
+		currentPlayer = playerOne;
+
+	}
 
 
 	// Graphics and output
@@ -60,15 +142,71 @@ public:
 	
 	}
 	
-	void printPlayers() {}
+	void printPlayers() {
+		std::cout << "Player One: " << playerOne << std::endl;
+		std::cout << "Player Two: " << playerTwo << std::endl;
+	}
 
-	void setGameState() {}
+	void setGameState(int row, char player) {
+		for (int q = 0; q < cols - 1; q++) {
+			if (boardState[row - 1][q] != ' ') {
+				boardState[row - 1][q - 1] = player;
+			}
+			else {
+				std::cout << "Fuck";
+			}
+		}
+	}
 
-	void getPlayerMove() {}
+	void getPlayerMove() {
+		std::cout << "Player " << currentPlayer << ", choose a column!" << std::endl;
+		int playerChoice;
 
-	void incrementTurn() {}
+		while (true)
+		{
+			while (!(std::cin >> playerChoice)) {
+			
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-	void endGame() {}
+				// Prompt the user to enter a valid integer
+				std::cout << "Invalid input! Please enter an integer: ";
+			}
+
+			if (playerChoice >= 1 && playerChoice <= 7) {
+				int& row = playerChoice;
+
+				if (boardState[row - 1][0] == ' ') // If the column isn't full 
+				{
+					setGameState(row, currentPlayer);
+					break;
+				}
+				else {
+					std::cout << "Selected column is already occupied! Select another column." << std::endl;
+				}
+			}
+			else {
+				std::cout << "Invalid input! Column must be between 1 and " << cols << std::endl;
+			}
+
+		}
+	}
+
+	void incrementTurn() {
+		if (currentPlayer == 'X') {
+			currentPlayer = 'O';
+		}
+		else {
+			currentPlayer = 'X';
+		}
+	}
+
+	void endGame() {
+		displayGameBoard();
+		std::cout << std::endl << "Thanks for playing!" << std::endl;
+		system("pause");
+		exit(0);
+	}
 
 	bool moveIsValid() {
 
@@ -108,8 +246,8 @@ public:
 		while (validGameState && (!winningGameState)) {
 			game.displayGameBoard();
 			game.getPlayerMove();
-			game.checkForWin();
-			game.checkForTie();
+			//game.checkForWin();
+			//game.checkForTie();
 			game.incrementTurn();
 		}
 	
@@ -134,9 +272,10 @@ private:
 
 
 int main() {
-	ConnectFour testGame;
+	ConnectFour realGame;
 
-	testGame.displayGameBoard();
+	// realGame.displayGameBoard(); // test statement
+	realGame.gameLoop(realGame);
 
 	return 0;
 }
