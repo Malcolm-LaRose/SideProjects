@@ -8,30 +8,67 @@ public:
 
 	ConnectFour() : boardState(rows, std::vector<char>(cols, ' ')), playerOne(' '), playerTwo(' '), currentPlayer(playerOne) {}
 
+	// Input handling
+
+	char validateCharInput() {}
+
+	char validateYesNoInput() {}
+
+	int validateIntInput() {}
+
+	// Gameplay
+
+	char choosePlayerOne() {}
+
+	void initPlayers() {}
+
 
 	// Graphics and output
 	void displayGameBoard() {
+		// Print column numbers
+		std::cout << "   ";
+		for (int j = 0; j < cols; ++j) {
+			std::cout << " " << j + 1 << "  ";
+		}
+		std::cout << std::endl;
+
+		// Print top border of the board
+		std::cout << "  ";
+		for (int k = 0; k < cols; ++k) {
+			std::cout << "+---";
+		}
+		std::cout << "+" << std::endl;
+
+		// Loop through each row
 		for (int i = 0; i < rows; ++i) {
-			// Print top border of each row
-			for (int k = 0; k < cols; ++k) {
-				std::cout << "+---";
-			}
-			std::cout << "+" << std::endl;
+			// Print row number
+			std::cout << i + 1 << " ";
 
 			// Print cell content and vertical borders
 			for (int j = 0; j < cols; ++j) {
 				std::cout << "| " << boardState[i][j] << " ";
 			}
 			std::cout << "|" << std::endl;
-		}
 
-		// Print bottom border of the board
-		for (int k = 0; k < cols; ++k) {
-			std::cout << "+---";
+			// Print horizontal border between rows
+			std::cout << "  ";
+			for (int k = 0; k < cols; ++k) {
+				std::cout << "+---";
+			}
+			std::cout << "+" << std::endl;
 		}
-		std::cout << "+" << std::endl;
 	
 	}
+	
+	void printPlayers() {}
+
+	void setGameState() {}
+
+	void getPlayerMove() {}
+
+	void incrementTurn() {}
+
+	void endGame() {}
 
 	bool moveIsValid() {
 
@@ -59,6 +96,24 @@ public:
 		// Can handle as putting the top row in the bottom and clearing the rest or ending the game
 	
 	
+	}
+
+	void gameLoop(ConnectFour& game) {
+		bool validGameState = true;
+		bool winningGameState = false;
+
+		game.initPlayers();
+		game.printPlayers();
+
+		while (validGameState && (!winningGameState)) {
+			game.displayGameBoard();
+			game.getPlayerMove();
+			game.checkForWin();
+			game.checkForTie();
+			game.incrementTurn();
+		}
+	
+// End of C4 class
 	}
 
 
