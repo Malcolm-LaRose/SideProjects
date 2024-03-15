@@ -1,6 +1,10 @@
 ﻿#include <iostream>
-//#include <string>
 #include <vector>
+
+
+// Forward delcarations
+
+
 
 
 class ConnectFour {
@@ -150,23 +154,21 @@ public:
 	void setGameState(int column, char player) {
 		// Place the tile at the top of the column
 
-		int c = 0;
-		while (c < rows - 1) {
-			if (boardState[c][column - 1] == 'X' || boardState[c][column - 1] == 'O') {
-				boardState[c - 1][column - 1] = player;
-				break;
-			}
-
-			else if (c == rows - 1) {
-				boardState[rows - 1][column - 1] = player;
+		int c = rows - 1;
+		while (c >= 0) {
+			if (boardState[c][column - 1] == ' ') {
+				boardState[c][column - 1] = player;
 				break;
 			}
 
 			else {
-				c++;
-			}
+				c--;
+			}	
 
 		}
+
+
+
 	}
 
 	void getPlayerMove() {
@@ -217,6 +219,22 @@ public:
 		std::cout << std::endl << "Thanks for playing!" << std::endl;
 		system("pause");
 		exit(0);
+	}
+
+	bool isColumnFull(int col) {
+		int i = 0;
+
+		while (i < rows) {
+			if (boardState[i][col] == ' ') {
+				return false;
+			}
+			else {
+				i++;
+			}
+
+		}
+		return true;
+
 	}
 
 	bool moveIsValid() {
