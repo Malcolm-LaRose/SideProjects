@@ -126,7 +126,7 @@ public:
 			// Print row number
 			std::cout << i + 1 << " ";
 
-			// Print cell content and vertical borders
+			// Print cell contents and vertical borders
 			for (int j = 0; j < cols; ++j) {
 				std::cout << "| " << boardState[i][j] << " ";
 			}
@@ -147,14 +147,25 @@ public:
 		std::cout << "Player Two: " << playerTwo << std::endl;
 	}
 
-	void setGameState(int row, char player) {
-		for (int q = 0; q < cols - 1; q++) {
-			if (boardState[row - 1][q] != ' ') {
-				boardState[row - 1][q - 1] = player;
+	void setGameState(int column, char player) {
+		// Place the tile at the top of the column
+
+		int c = 0;
+		while (c < rows - 1) {
+			if (boardState[c][column - 1] == 'X' || boardState[c][column - 1] == 'O') {
+				boardState[c - 1][column - 1] = player;
+				break;
 			}
+
+			else if (c == rows - 1) {
+				boardState[rows - 1][column - 1] = player;
+				break;
+			}
+
 			else {
-				std::cout << "Fuck";
+				c++;
 			}
+
 		}
 	}
 
@@ -174,11 +185,11 @@ public:
 			}
 
 			if (playerChoice >= 1 && playerChoice <= 7) {
-				int& row = playerChoice;
+				int& col = playerChoice;
 
-				if (boardState[row - 1][0] == ' ') // If the column isn't full 
+				if (boardState[0][cols - 1] == ' ') // If the column isn't full (last slot is empty)
 				{
-					setGameState(row, currentPlayer);
+					setGameState(col, currentPlayer);
 					break;
 				}
 				else {
