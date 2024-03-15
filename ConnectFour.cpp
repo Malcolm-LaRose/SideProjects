@@ -2,15 +2,32 @@
 #include <vector>
 
 
-// Forward delcarations
-
-
 
 
 class ConnectFour {
 public:
 
-	ConnectFour() : boardState(rows, std::vector<char>(cols, ' ')), playerOne(' '), playerTwo(' '), currentPlayer(playerOne) {}
+	ConnectFour(int rows = 6, int cols = 7)
+		: rows(rows), cols(cols), boardState(rows, std::vector<char>(cols, ' ')),
+		playerOne(' '), playerTwo(' '), currentPlayer(playerOne) {}
+
+	// Forward delcarations
+	//char validateCharInput(std::string message);
+	//char validateYesNoInput(std::string message);
+	//int validateIntInput(std::string message, int lowBound, int highBound);
+	//char choosePlayerOne();
+	//void initPlayers();
+	//void displayGameBoard();
+	//void printPlayers();
+	//void setGameState(int column, char player);
+	//void getPlayerMove();
+	//void incrementTurn();
+	//void endGame();
+	//bool moveIsValid();
+	//bool checkForWin();
+	//bool checkForTie();
+	//void gameLoop(ConnectFour& game);
+
 
 	// Input handling
 
@@ -73,7 +90,7 @@ public:
 			std::cin >> playerInput;
 
 			// Validate input
-			if (playerInput >= 1 && playerInput <= 7) {
+			if (playerInput >= lowBound && playerInput <= highBound) {
 				return playerInput;
 			}
 			else {
@@ -152,7 +169,8 @@ public:
 	}
 
 	void setGameState(int column, char player) {
-		// Place the tile at the top of the column
+		// Place the tile starting at the bottom of the column
+
 
 		int c = rows - 1;
 		while (c >= 0) {
@@ -164,11 +182,7 @@ public:
 			else {
 				c--;
 			}	
-
 		}
-
-
-
 	}
 
 	void getPlayerMove() {
@@ -186,10 +200,10 @@ public:
 				std::cout << "Invalid input! Please enter an integer: ";
 			}
 
-			if (playerChoice >= 1 && playerChoice <= 7) {
+			if (playerChoice >= 1 && playerChoice <= cols) {
 				int& col = playerChoice;
 
-				if (boardState[0][cols - 1] == ' ') // If the column isn't full (last slot is empty)
+				if (isColumnFull(playerChoice) == false) // If the column isn't full (last slot is empty) (checks twice)
 				{
 					setGameState(col, currentPlayer);
 					break;
@@ -222,19 +236,12 @@ public:
 	}
 
 	bool isColumnFull(int col) {
-		int i = 0;
-
-		while (i < rows) {
-			if (boardState[i][col] == ' ') {
-				return false;
+		for (int i = 0; i < rows; ++i) {
+			if (boardState[i][col - 1] == ' ') {
+				return false; // Column is not full, as there's an empty space
 			}
-			else {
-				i++;
-			}
-
 		}
-		return true;
-
+		return true; // Column is full, as no empty space was found
 	}
 
 	bool moveIsValid() {
@@ -286,8 +293,8 @@ public:
 
 private:
 
-	const int rows = 6;
-	const int cols = 7;
+	int rows;
+	int cols;
 
 	std::vector<std::vector<char>> boardState;
 	char playerOne;
