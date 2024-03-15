@@ -244,32 +244,38 @@ public:
 		return true; // Column is full, as no empty space was found
 	}
 
-	bool moveIsValid() {
+	bool checkForFull() {
 
-		// Is cell occupied
+		for (int i = 0; i < rows; i++) {
 
-		// Is column full
-	
+			for (int j = 0; j < cols; j++) {
 
+				if (boardState[i][j] == ' ') {
+					return false;
+				}
+
+			}
+		}
+		return true;
+	}
+
+	bool checkForTie() { // To account for other possible tie conditions (if any?)
+		if (checkForFull()) {
+			std::cout << "Game ends in a tie!" << std::endl;
+			endGame();
+		}
 	}
 
 	bool checkForWin() {
+	// Horizontal 4
+		// If any arbitrary four tiles in a row are the same, that player wins
 
-		// Horizontal 4
+	// Vertical 4
+		// If any arbitrary four tiles in a column are the same, that player wins
 
-		// Vertical 4
+	// Diagonal 4
+		// Hmmm....
 
-		// Diagonal 4
-	
-	
-	}
-
-	bool checkForTie() {
-
-		// Is board full?
-		// Can handle as putting the top row in the bottom and clearing the rest or ending the game
-	
-	
 	}
 
 	void gameLoop(ConnectFour& game) {
@@ -283,7 +289,7 @@ public:
 			game.displayGameBoard();
 			game.getPlayerMove();
 			//game.checkForWin();
-			//game.checkForTie();
+			game.checkForFull();
 			game.incrementTurn();
 		}
 	
