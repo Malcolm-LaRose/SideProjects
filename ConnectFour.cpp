@@ -176,6 +176,8 @@ public:
 		while (c >= 0) {
 			if (boardState[c][column - 1] == ' ') {
 				boardState[c][column - 1] = player;
+				lastPlayedPosition.first = c;
+				lastPlayedPosition.second = column - 1;
 				break;
 			}
 
@@ -266,15 +268,28 @@ public:
 		}
 	}
 
-	bool checkForWin() {
-	// Horizontal 4
-		// If any arbitrary four tiles in a row are the same, that player wins
+	bool searchFour(int i = 0, int j = 0) {
+		while (i < 4) {
 
-	// Vertical 4
-		// If any arbitrary four tiles in a column are the same, that player wins
+		}
+	}
 
-	// Diagonal 4
-		// Hmmm....
+
+	bool checkForWin(int rowIncSign, int colIncSign) {
+		char& checkSymbol = currentPlayer;
+
+		if (currentPlayer == ' ') return false; // Probably an error if this happens
+
+		int sameCount = 1; // If this equals four, report a win
+
+		for (int j = 1; j <= 3; ++j) {
+			int newRow = lastPlayedPosition.first + j * rowIncSign;
+		}
+
+		
+
+
+
 
 	}
 
@@ -306,6 +321,7 @@ private:
 	char playerOne;
 	char playerTwo;
 	char currentPlayer;
+	std::pair<int, int> lastPlayedPosition;
 
 
 
