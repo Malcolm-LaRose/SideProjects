@@ -24,7 +24,6 @@ public:
 		bool validGameState = true;
 		bool winningGameState = false;
 
-		//game.initPlayers();
 		game.gameInit();
 		game.printPlayers();
 
@@ -33,8 +32,14 @@ public:
 			game.getPlayerMove();
 			game.checkForWin();
 			game.checkForFull();
+
+			if (winningGameState) {
+				endGame();
+			}
+
 			game.incrementTurn();
 		}
+
 	}
 
 private:
@@ -155,8 +160,8 @@ private:
 	}
 
 	void initBoard() {
-		rows = validateIntInput("Select a number of rows or press enter for default (6)", 4, 64);
-		cols = validateIntInput("Select a number of columns or press enter for default (7)", 4, 64);
+		rows = validateIntInput("Select a number of rows (Default 6)", 4, 64);
+		cols = validateIntInput("Select a number of columns (Default 7)", 4, 64);
 
 		boardState.resize(rows, std::vector<char>(cols, ' '));
 	}
@@ -167,6 +172,8 @@ private:
 	}
 
 	void displayGameBoard() {
+		system("cls");
+
 		// Print column numbers
 		std::cout << "   ";
 		for (int j = 0; j < cols; ++j) {

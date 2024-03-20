@@ -110,6 +110,8 @@ public:
 
     // Graphics and output
     void displayGameBoard() {
+        system("cls");
+
         std::string horizontalSeparator = " -----------\n";
         for (int i = 0; i < 3; ++i) {
             std::cout << " ";
