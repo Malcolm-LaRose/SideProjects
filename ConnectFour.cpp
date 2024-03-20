@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <vector>
+#include <cmath>
 
 
 
@@ -268,23 +269,49 @@ public:
 		}
 	}
 
-	bool searchFour(int i = 0, int j = 0) {
-		while (i < 4) {
-
-		}
-	}
-
-
-	bool checkForWin(int rowIncSign, int colIncSign) {
+	bool searchFour(int rowIncSign, int colIncSign) {
 		char& checkSymbol = currentPlayer;
 
 		if (currentPlayer == ' ') return false; // Probably an error if this happens
 
 		int sameCount = 1; // If this equals four, report a win
 
-		for (int j = 1; j <= 3; ++j) {
-			int newRow = lastPlayedPosition.first + j * rowIncSign;
+		for (int rowInc = 0; rowInc < abs(rows * rowIncSign); rowInc += rowInc * rowIncSign) { // Increment the row counter by +/0/- rowIncSign
+			for (int colInc = 0; colInc < abs(cols * colIncSign); colInc += colInc * colIncSign) { // Incrememnt the col counter by +/0/- colIncSign
+				// After moving, check symbol against checkSymbol
+				// If the same, increment sameCount
+			}
 		}
+	}
+
+
+	bool checkForWin() {
+		char& checkSymbol = currentPlayer;
+
+		// Both positive
+		searchFour(1, 1);
+
+		// Pos row, 0 col
+		searchFour(1,0);
+
+		// Pos row, neg col
+		searchFour(1,-1);
+
+		// 0 row, neg col
+		searchFour(0,-1);
+
+		// neg row, neg col
+		searchFour(-1,-1);
+
+		// neg row, 0 col
+		searchFour(-1,0);
+
+		// neg row, pos col
+		searchFour(-1,1);
+
+		// 0 row, pos col
+		searchFour(0,1);
+		
 
 		
 
