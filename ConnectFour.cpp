@@ -156,17 +156,17 @@ public:
 		// Place the tile starting at the bottom of the column
 
 
-		int c = rows - 1;
-		while (c >= 0) {
-			if (boardState[c][column - 1] == ' ') {
-				boardState[c][column - 1] = player;
-				lastPlayedPosition.first = c;
+		int r = rows - 1;
+		while (r >= 0) {
+			if (boardState[r][column - 1] == ' ') {
+				boardState[r][column - 1] = player;
+				lastPlayedPosition.first = r;
 				lastPlayedPosition.second = column - 1;
 				break;
 			}
 
 			else {
-				c--;
+				r--;
 			}	
 		}
 	}
@@ -246,6 +246,10 @@ public:
 		return true;
 	}
 
+	bool isInBounds(int row, int col) {
+		return (row >= 0 && row < rows && col >= 0 && col < cols);
+	}
+
 	bool checkForTie() { // To account for other possible tie conditions (if any?)
 		if (checkForFull()) {
 			std::cout << "Game ends in a tie!" << std::endl;
@@ -253,87 +257,49 @@ public:
 		}
 	}
 
-	bool searchFour(int rowIncSign, int colIncSign) {
-		char& checkSymbol = currentPlayer;
-
-		if (currentPlayer == ' ') return false; // Probably an error if this happens
-
+	bool searchFour(int rowInc, int colInc) {
 		int sameCount = 1; // If this equals four, report a win
 
-		std::cout << "rIncSign:" << rowIncSign << std::endl;
+		/*std::cout << "rIncSign:" << rowIncSign << std::endl;
 		std::cout << "cIncSign:" << colIncSign << std::endl;
+		std::cout << "Played position:" << lastPlayedPosition.first << ", " << lastPlayedPosition.second << std::endl;*/
 
+		int newRow = lastPlayedPosition.first + rowInc;
+		int newCol = lastPlayedPosition.second + colInc;
 
-
-		for (int rowInc = 1; rowInc < abs(rows * rowIncSign); rowInc += 1 * rowIncSign) { // Increment the row counter by +/0/- rowIncSign
-
-			int colLoopCounter = 0;
-			for (int colInc = 1; colLoopCounter < 3 && colInc < abs(cols * colIncSign); colInc += 1 * colIncSign) { // Incrememnt the col counter by +/0/- colIncSign
-
-				int newRow = lastPlayedPosition.first + rowInc;
-				int newCol = lastPlayedPosition.second + colInc;
-
-				std::cout << "newRow:" << newRow << std::endl;
-				std::cout << "newCol:" << newCol << std::endl;
-
-				// CHECK IF NEW POSITION IS IN BOUNDS
-				if ((0 <= newRow) && (newRow < rows) && (newCol < cols) && (0 <= newCol)) {
-
-					char checkState = boardState[newRow][newCol]; // THIS LINE BREAKS THINGS
-					// After moving, check symbol against checkSymbol
-					// If the same, increment sameCount
-					if (checkSymbol == checkState)
-					{
-						sameCount += 1; 
-						std::cout << sameCount << std::endl;
-					}
+		while (((newRow - lastPlayedPosition.first) < 4) && ((newCol - lastPlayedPosition.second) < 4) && isInBounds(newRow,newCol)) {
+			if (boardState[newRow][newCol] == currentPlayer) {
+				sameCount++;
+				if (sameCount == 4) {
+					return true; // Found a win
 				}
-				else {
-					return false;
-				}
-				colLoopCounter++;
 			}
-
+			else {
+				break; // Break the loop if symbols don't match
+			}
+			newRow += rowInc; // Move to the next position in the current direction
+			newCol += colInc;
 		}
-
-		if (sameCount == 4) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return false;
 	}
 
 
 	bool checkForWin() {
 		char& winningPlayer = currentPlayer;
 		bool isWinning = false;
+		std::pair<int, int> winningDir;
 
-		// Both positive ↘
-		isWinning = searchFour(1, 1);
+		for (const auto& direction : directions) {
+			isWinning = searchFour(direction.first, direction.second);
+			if (isWinning) {
+				winningDir.first = direction.first;
+				winningDir.second = direction.second;
+				std::cout << "Win detected in direction " << winningDir.first << winningDir.second << std::endl;
+				return true;
 
-		// Pos row, 0 col ↓
-		isWinning = searchFour(1,0);
+			}
+		}
 
-		// Pos row, neg col ↙
-		isWinning = searchFour(1,-1);
-
-		// 0 row, neg col ←
-		isWinning = searchFour(0,-1);
-
-		// neg row, neg col ↖
-		isWinning = searchFour(-1,-1);
-
-		// neg row, 0 col ↑
-		// isWinning = searchFour(-1,0); // Shouldn't ever be possible(?)
-
-		// neg row, pos col ↗
-		isWinning = searchFour(-1,1);
-
-		// 0 row, pos col →
-		isWinning = searchFour(0,1);
-
-		if (isWinning) std::cout << "Win detected!" << std::endl;
 
 		return isWinning;
 
@@ -368,6 +334,18 @@ private:
 	char playerTwo;
 	char currentPlayer;
 	std::pair<int, int> lastPlayedPosition;
+
+	// Define direction vectors for each of the eight possible directions
+	const std::vector<std::pair<int, int>> directions = {
+		{1, 1},   // ↘
+		{1, 0},   // ↓
+		{1, -1},  // ↙
+		{0, -1},  // ←
+		{-1, -1}, // ↖
+		// {-1, 0},  // ↑
+		{-1, 1},  // ↗
+		{0, 1}    // →
+	};
 
 
 
