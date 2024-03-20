@@ -8,27 +8,10 @@
 class ConnectFour {
 public:
 
+	// Constructor
 	ConnectFour(int rows = 6, int cols = 7)
 		: rows(rows), cols(cols), boardState(rows, std::vector<char>(cols, ' ')),
 		playerOne(' '), playerTwo(' '), currentPlayer(playerOne) {}
-
-	// Forward delcarations
-	//char validateCharInput(std::string message);
-	//char validateYesNoInput(std::string message);
-	//int validateIntInput(std::string message, int lowBound, int highBound);
-	//char choosePlayerOne();
-	//void initPlayers();
-	//void displayGameBoard();
-	//void printPlayers();
-	//void setGameState(int column, char player);
-	//void getPlayerMove();
-	//void incrementTurn();
-	//void endGame();
-	//bool moveIsValid();
-	//bool checkForWin();
-	//bool checkForTie();
-	//void gameLoop(ConnectFour& game);
-
 
 	// Input handling
 
@@ -188,6 +171,15 @@ public:
 		}
 	}
 
+	bool isColumnFull(int col) {
+		for (int i = 0; i < rows; ++i) {
+			if (boardState[i][col - 1] == ' ') {
+				return false; // Column is not full, as there's an empty space
+			}
+		}
+		return true; // Column is full, as no empty space was found
+	}
+
 	void getPlayerMove() {
 		std::cout << "Player " << currentPlayer << ", choose a column!" << std::endl;
 		int playerChoice;
@@ -238,14 +230,6 @@ public:
 		exit(0);
 	}
 
-	bool isColumnFull(int col) {
-		for (int i = 0; i < rows; ++i) {
-			if (boardState[i][col - 1] == ' ') {
-				return false; // Column is not full, as there's an empty space
-			}
-		}
-		return true; // Column is full, as no empty space was found
-	}
 
 	bool checkForFull() {
 
@@ -276,47 +260,58 @@ public:
 
 		int sameCount = 1; // If this equals four, report a win
 
-		for (int rowInc = 0; rowInc < abs(rows * rowIncSign); rowInc += rowInc * rowIncSign) { // Increment the row counter by +/0/- rowIncSign
-			for (int colInc = 0; colInc < abs(cols * colIncSign); colInc += colInc * colIncSign) { // Incrememnt the col counter by +/0/- colIncSign
+
+
+		for (int rowInc = 1; rowInc < abs(rows * rowIncSign); rowInc += 1 * rowIncSign) { // Increment the row counter by +/0/- rowIncSign
+			for (int colInc = 1; colInc < abs(cols * colIncSign); colInc += 1 * colIncSign) { // Incrememnt the col counter by +/0/- colIncSign
+
+				char checkState = boardState[lastPlayedPosition.first + rowInc][lastPlayedPosition.second + colInc];
 				// After moving, check symbol against checkSymbol
 				// If the same, increment sameCount
+				if (checkSymbol == checkState)
+				{
+					sameCount += 1;
+				}
 			}
+		}
+		if (sameCount == 4) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 
 
 	bool checkForWin() {
-		char& checkSymbol = currentPlayer;
+		char& winningPlayer = currentPlayer;
+		bool isWinning = false;
 
-		// Both positive
-		searchFour(1, 1);
+		// Both positive ↘
+		isWinning = searchFour(1, 1);
 
-		// Pos row, 0 col
-		searchFour(1,0);
+		// Pos row, 0 col ↓
+		isWinning = searchFour(1,0);
 
-		// Pos row, neg col
-		searchFour(1,-1);
+		// Pos row, neg col ↙
+		isWinning = searchFour(1,-1);
 
-		// 0 row, neg col
-		searchFour(0,-1);
+		// 0 row, neg col ←
+		isWinning = searchFour(0,-1);
 
-		// neg row, neg col
-		searchFour(-1,-1);
+		// neg row, neg col ↖
+		isWinning = searchFour(-1,-1);
 
-		// neg row, 0 col
-		searchFour(-1,0);
+		// neg row, 0 col ↑
+		isWinning = searchFour(-1,0);
 
-		// neg row, pos col
-		searchFour(-1,1);
+		// neg row, pos col ↗
+		isWinning = searchFour(-1,1);
 
-		// 0 row, pos col
-		searchFour(0,1);
-		
+		// 0 row, pos col →
+		isWinning = searchFour(0,1);
 
-		
-
-
-
+		return isWinning;
 
 	}
 
