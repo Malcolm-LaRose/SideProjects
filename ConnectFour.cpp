@@ -3,9 +3,10 @@
 
 // Future goals
 // Make ConnectN
+// Refactor if sensible
 // Thoroughly check for bugs
 // Integrate with tic tac toe into a bundle of games in one program
-// Make winning move more apparent on final board
+// Make winning move more apparent on final board (not just enumerated)
 // 
 //
 
@@ -30,13 +31,11 @@ public:
 		while (validGameState && (!winningGameState)) {
 			game.displayGameBoard();
 			game.getPlayerMove();
-			game.checkForWin();
+			if (game.checkForWin() == true) {
+				displayWin(winningDir.first, winningDir.second);
+				winningGameState = true;
+			};
 			game.checkForFull();
-
-			if (winningGameState) {
-				endGame();
-			}
-
 			game.incrementTurn();
 		}
 
@@ -52,6 +51,7 @@ private:
 	char playerTwo;
 	char currentPlayer;
 	std::pair<int, int> lastPlayedPosition;
+	std::pair<int, int> winningDir;
 
 	// Define direction vectors for each of the eight possible directions
 	const std::vector<std::pair<int, int>> directions = {
@@ -171,8 +171,8 @@ private:
 		initBoard();
 	}
 
-	void displayGameBoard() {
-		system("cls");
+	void displayGameBoard(bool clrS = true) {
+		if (clrS) system("cls");
 
 		// Print column numbers
 		std::cout << "   ";
@@ -297,7 +297,7 @@ private:
 	}
 
 	void endGame() {
-		displayGameBoard();
+		displayGameBoard(false);
 		std::cout << std::endl << "Thanks for playing!" << std::endl;
 		system("pause");
 		exit(0);
@@ -334,6 +334,7 @@ private:
 		int newRow = lastPlayedPosition.first + rowInc;
 		int newCol = lastPlayedPosition.second + colInc;
 
+
 		while (((newRow - lastPlayedPosition.first) < 4) && ((newCol - lastPlayedPosition.second) < 4) && isInBounds(newRow, newCol)) {
 			if (boardState[newRow][newCol] == currentPlayer) {
 				sameCount++;
@@ -353,19 +354,41 @@ private:
 	bool checkForWin() {
 		char& winningPlayer = currentPlayer;
 		bool isWinning = false;
-		std::pair<int, int> winningDir;
+
 
 		for (const auto& direction : directions) {
 			isWinning = searchFour(direction.first, direction.second);
 			if (isWinning) {
 				winningDir.first = direction.first;
 				winningDir.second = direction.second;
-				std::cout << "Win detected in direction " << winningDir.first << winningDir.second << std::endl;
+
 				return true;
 
 			}
+
 		}
 		return isWinning;
+	}
+
+	void displayWin(int rowInc, int colInc) {
+		std::cout << std::endl << "Congratulations, " << currentPlayer << ", you are the winner!" << std::endl;
+		std::cout << "The winning move was: ";
+		
+		int newRow = lastPlayedPosition.first + rowInc;
+		int newCol = lastPlayedPosition.second + colInc;
+
+		std::cout << "(" << lastPlayedPosition.first + 1 << ", " << lastPlayedPosition.second + 1 << "), ";
+
+		while (((newRow - lastPlayedPosition.first) < 4) && ((newCol - lastPlayedPosition.second) < 4)) {
+
+			std::cout << "(" << newRow + 1 << ", " << newCol + 1 << "), ";
+
+			newRow += rowInc; // Move to the next position in the current direction
+			newCol += colInc;
+
+		}
+		std::cout << std::endl;
+		endGame();
 	}
 };
 
