@@ -1,6 +1,15 @@
 ﻿#include <iostream>
 #include <vector>
 
+// Future goals
+// Make ConnectN
+// Thoroughly check for bugs
+// Integrate with tic tac toe into a bundle of games in one program
+// Make winning move more apparent on final board
+// 
+//
+
+
 
 class ConnectFour {
 public:
@@ -15,6 +24,7 @@ public:
 		bool validGameState = true;
 		bool winningGameState = false;
 
+		//game.initPlayers();
 		game.gameInit();
 		game.printPlayers();
 
@@ -104,7 +114,7 @@ private:
 	}
 
 	int validateIntInput(std::string message, int lowBound, int highBound) {
-		char playerInput;
+		int playerInput;
 
 		// Keep asking until valid input is received
 		while (true) {
@@ -147,6 +157,8 @@ private:
 	void initBoard() {
 		rows = validateIntInput("Select a number of rows or press enter for default (6)", 1, 64);
 		cols = validateIntInput("Select a number of columns or press enter for default (7)", 1, 64);
+
+		boardState.resize(rows, std::vector<char>(cols, ' '));
 	}
 
 	void gameInit() {
@@ -238,9 +250,9 @@ private:
 			}
 
 			if (playerChoice >= 1 && playerChoice <= cols) {
-				int& col = playerChoice;
+				int col = playerChoice - 1;
 
-				if (isColumnFull(playerChoice) == false) // If the column isn't full (last slot is empty) (checks twice)
+				if (!isColumnFull(col)) // If the column isn't full (last slot is empty)
 				{
 					setGameState(col, currentPlayer);
 					break;
