@@ -15,7 +15,7 @@ class ConnectFour {
 public:
 
 	// Constructor
-	ConnectFour(int rows = 6, int cols = 7)
+	ConnectFour()
 		: rows(rows), cols(cols), boardState(rows, std::vector<char>(cols, ' ')),
 		playerOne(' '), playerTwo(' '), currentPlayer(playerOne) {}
 
@@ -155,8 +155,8 @@ private:
 	}
 
 	void initBoard() {
-		rows = validateIntInput("Select a number of rows or press enter for default (6)", 1, 64);
-		cols = validateIntInput("Select a number of columns or press enter for default (7)", 1, 64);
+		rows = validateIntInput("Select a number of rows or press enter for default (6)", 4, 64);
+		cols = validateIntInput("Select a number of columns or press enter for default (7)", 4, 64);
 
 		boardState.resize(rows, std::vector<char>(cols, ' '));
 	}
@@ -170,12 +170,20 @@ private:
 		// Print column numbers
 		std::cout << "   ";
 		for (int j = 0; j < cols; ++j) {
-			std::cout << " " << j + 1 << "  ";
+			if (j < 8) {
+				std::cout << "  " << j + 1 << " ";
+			}
+			else if (j == 8) {
+				std::cout << "  " << j + 1 << "  ";
+			}
+			else {
+				std::cout << " " << j + 1 << " ";
+			}
 		}
 		std::cout << std::endl;
 
 		// Print top border of the board
-		std::cout << "  ";
+		std::cout << "   ";
 		for (int k = 0; k < cols; ++k) {
 			std::cout << "+---";
 		}
@@ -184,7 +192,12 @@ private:
 		// Loop through each row
 		for (int i = 0; i < rows; ++i) {
 			// Print row number
-			std::cout << i + 1 << " ";
+			if (i < 9) {
+				std::cout << " " << i + 1 << " ";
+			}
+			else {
+				std::cout << i + 1 << " ";
+			}
 
 			// Print cell contents and vertical borders
 			for (int j = 0; j < cols; ++j) {
@@ -193,7 +206,7 @@ private:
 			std::cout << "|" << std::endl;
 
 			// Print horizontal border between rows
-			std::cout << "  ";
+			std::cout << "   ";
 			for (int k = 0; k < cols; ++k) {
 				std::cout << "+---";
 			}
