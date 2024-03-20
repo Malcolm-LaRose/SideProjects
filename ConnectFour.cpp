@@ -263,7 +263,7 @@ private:
 			}
 
 			if (playerChoice >= 1 && playerChoice <= cols) {
-				int col = playerChoice - 1;
+				int col = playerChoice;
 
 				if (!isColumnFull(col)) // If the column isn't full (last slot is empty)
 				{
@@ -360,7 +360,6 @@ private:
 		}
 		return isWinning;
 	}
-
 };
 
 
