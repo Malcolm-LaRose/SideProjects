@@ -1,8 +1,5 @@
 ﻿#include <iostream>
 #include <vector>
-#include <cmath>
-
-
 
 
 class ConnectFour {
@@ -12,6 +9,47 @@ public:
 	ConnectFour(int rows = 6, int cols = 7)
 		: rows(rows), cols(cols), boardState(rows, std::vector<char>(cols, ' ')),
 		playerOne(' '), playerTwo(' '), currentPlayer(playerOne) {}
+
+	// Main Loop
+	void gameLoop(ConnectFour& game) {
+		bool validGameState = true;
+		bool winningGameState = false;
+
+		game.gameInit();
+		game.printPlayers();
+
+		while (validGameState && (!winningGameState)) {
+			game.displayGameBoard();
+			game.getPlayerMove();
+			game.checkForWin();
+			game.checkForFull();
+			game.incrementTurn();
+		}
+	}
+
+private:
+
+	int rows;
+	int cols;
+
+	std::vector<std::vector<char>> boardState;
+	char playerOne;
+	char playerTwo;
+	char currentPlayer;
+	std::pair<int, int> lastPlayedPosition;
+
+	// Define direction vectors for each of the eight possible directions
+	const std::vector<std::pair<int, int>> directions = {
+		{1, 1},   // ↘
+		{1, 0},   // ↓
+		{1, -1},  // ↙
+		{0, -1},  // ←
+		{-1, -1}, // ↖
+		// {-1, 0},  // ↑ not necessary, will never find a solution above the last placed piece
+		{-1, 1},  // ↗
+		{0, 1}    // →
+	};
+
 
 	// Input handling
 
@@ -79,7 +117,7 @@ public:
 			}
 			else {
 				// Invalid input
-				std::cout << "Invalid input! Please enter a number between " << lowBound <<" and " << highBound << " only. Try again." << std::endl;
+				std::cout << "Invalid input! Please enter a number between " << lowBound << " and " << highBound << " only. Try again." << std::endl;
 				// Clear input buffer
 				std::cin.clear();
 				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -87,15 +125,14 @@ public:
 		}
 	}
 
-	// Gameplay
+	// Gameplay and Graphics
 
 	char choosePlayerOne() {
-	
 		return validateCharInput("Should X or O go first ? ");
 	}
 
 	void initPlayers() {
-	
+
 		playerOne = choosePlayerOne();
 
 		if (playerOne == 'X') {
@@ -104,13 +141,19 @@ public:
 		else {
 			playerTwo = 'X';
 		}
-
 		currentPlayer = playerOne;
-
 	}
 
+	void initBoard() {
+		rows = validateIntInput("Select a number of rows or press enter for default (6)", 1, 64);
+		cols = validateIntInput("Select a number of columns or press enter for default (7)", 1, 64);
+	}
 
-	// Graphics and output
+	void gameInit() {
+		initPlayers();
+		initBoard();
+	}
+
 	void displayGameBoard() {
 		// Print column numbers
 		std::cout << "   ";
@@ -144,9 +187,8 @@ public:
 			}
 			std::cout << "+" << std::endl;
 		}
-	
 	}
-	
+
 	void printPlayers() {
 		std::cout << "Player One: " << playerOne << std::endl;
 		std::cout << "Player Two: " << playerTwo << std::endl;
@@ -167,7 +209,7 @@ public:
 
 			else {
 				r--;
-			}	
+			}
 		}
 	}
 
@@ -187,7 +229,7 @@ public:
 		while (true)
 		{
 			while (!(std::cin >> playerChoice)) {
-			
+
 				std::cin.clear();
 				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
@@ -210,7 +252,6 @@ public:
 			else {
 				std::cout << "Invalid input! Column must be between 1 and " << cols << std::endl;
 			}
-
 		}
 	}
 
@@ -232,7 +273,6 @@ public:
 
 
 	bool checkForFull() {
-
 		for (int i = 0; i < rows; i++) {
 
 			for (int j = 0; j < cols; j++) {
@@ -240,7 +280,6 @@ public:
 				if (boardState[i][j] == ' ') {
 					return false;
 				}
-
 			}
 		}
 		return true;
@@ -260,14 +299,10 @@ public:
 	bool searchFour(int rowInc, int colInc) {
 		int sameCount = 1; // If this equals four, report a win
 
-		/*std::cout << "rIncSign:" << rowIncSign << std::endl;
-		std::cout << "cIncSign:" << colIncSign << std::endl;
-		std::cout << "Played position:" << lastPlayedPosition.first << ", " << lastPlayedPosition.second << std::endl;*/
-
 		int newRow = lastPlayedPosition.first + rowInc;
 		int newCol = lastPlayedPosition.second + colInc;
 
-		while (((newRow - lastPlayedPosition.first) < 4) && ((newCol - lastPlayedPosition.second) < 4) && isInBounds(newRow,newCol)) {
+		while (((newRow - lastPlayedPosition.first) < 4) && ((newCol - lastPlayedPosition.second) < 4) && isInBounds(newRow, newCol)) {
 			if (boardState[newRow][newCol] == currentPlayer) {
 				sameCount++;
 				if (sameCount == 4) {
@@ -282,7 +317,6 @@ public:
 		}
 		return false;
 	}
-
 
 	bool checkForWin() {
 		char& winningPlayer = currentPlayer;
@@ -299,65 +333,14 @@ public:
 
 			}
 		}
-
-
 		return isWinning;
-
 	}
-
-	void gameLoop(ConnectFour& game) {
-		bool validGameState = true;
-		bool winningGameState = false;
-
-		game.initPlayers();
-		game.printPlayers();
-
-		while (validGameState && (!winningGameState)) {
-			game.displayGameBoard();
-			game.getPlayerMove();
-			game.checkForWin();
-			game.checkForFull();
-			game.incrementTurn();
-		}
-	
-// End of C4 class
-	}
-
-
-private:
-
-	int rows;
-	int cols;
-
-	std::vector<std::vector<char>> boardState;
-	char playerOne;
-	char playerTwo;
-	char currentPlayer;
-	std::pair<int, int> lastPlayedPosition;
-
-	// Define direction vectors for each of the eight possible directions
-	const std::vector<std::pair<int, int>> directions = {
-		{1, 1},   // ↘
-		{1, 0},   // ↓
-		{1, -1},  // ↙
-		{0, -1},  // ←
-		{-1, -1}, // ↖
-		// {-1, 0},  // ↑
-		{-1, 1},  // ↗
-		{0, 1}    // →
-	};
-
-
-
 
 };
 
 
 int main() {
 	ConnectFour realGame;
-
-	// realGame.displayGameBoard(); // test statement
 	realGame.gameLoop(realGame);
-
 	return 0;
 }
