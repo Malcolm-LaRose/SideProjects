@@ -99,7 +99,7 @@ public:
 		playerOne = choosePlayerOne();
 
 		if (playerOne == 'X') {
-			playerTwo == 'O';
+			playerTwo = 'O';
 		}
 		else {
 			playerTwo = 'X';
@@ -260,20 +260,42 @@ public:
 
 		int sameCount = 1; // If this equals four, report a win
 
+		std::cout << "rIncSign:" << rowIncSign << std::endl;
+		std::cout << "cIncSign:" << colIncSign << std::endl;
+
 
 
 		for (int rowInc = 1; rowInc < abs(rows * rowIncSign); rowInc += 1 * rowIncSign) { // Increment the row counter by +/0/- rowIncSign
-			for (int colInc = 1; colInc < abs(cols * colIncSign); colInc += 1 * colIncSign) { // Incrememnt the col counter by +/0/- colIncSign
 
-				char checkState = boardState[lastPlayedPosition.first + rowInc][lastPlayedPosition.second + colInc];
-				// After moving, check symbol against checkSymbol
-				// If the same, increment sameCount
-				if (checkSymbol == checkState)
-				{
-					sameCount += 1;
+			int colLoopCounter = 0;
+			for (int colInc = 1; colLoopCounter < 3 && colInc < abs(cols * colIncSign); colInc += 1 * colIncSign) { // Incrememnt the col counter by +/0/- colIncSign
+
+				int newRow = lastPlayedPosition.first + rowInc;
+				int newCol = lastPlayedPosition.second + colInc;
+
+				std::cout << "newRow:" << newRow << std::endl;
+				std::cout << "newCol:" << newCol << std::endl;
+
+				// CHECK IF NEW POSITION IS IN BOUNDS
+				if ((0 <= newRow) && (newRow < rows) && (newCol < cols) && (0 <= newCol)) {
+
+					char checkState = boardState[newRow][newCol]; // THIS LINE BREAKS THINGS
+					// After moving, check symbol against checkSymbol
+					// If the same, increment sameCount
+					if (checkSymbol == checkState)
+					{
+						sameCount += 1; 
+						std::cout << sameCount << std::endl;
+					}
 				}
+				else {
+					return false;
+				}
+				colLoopCounter++;
 			}
+
 		}
+
 		if (sameCount == 4) {
 			return true;
 		}
@@ -303,13 +325,15 @@ public:
 		isWinning = searchFour(-1,-1);
 
 		// neg row, 0 col ↑
-		isWinning = searchFour(-1,0);
+		// isWinning = searchFour(-1,0); // Shouldn't ever be possible(?)
 
 		// neg row, pos col ↗
 		isWinning = searchFour(-1,1);
 
 		// 0 row, pos col →
 		isWinning = searchFour(0,1);
+
+		if (isWinning) std::cout << "Win detected!" << std::endl;
 
 		return isWinning;
 
@@ -325,7 +349,7 @@ public:
 		while (validGameState && (!winningGameState)) {
 			game.displayGameBoard();
 			game.getPlayerMove();
-			//game.checkForWin();
+			game.checkForWin();
 			game.checkForFull();
 			game.incrementTurn();
 		}
