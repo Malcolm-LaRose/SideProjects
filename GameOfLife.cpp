@@ -13,6 +13,33 @@ private:
 
 };
 
+class SDLWindowDisplay {
+public:
+
+
+private:
+
+
+};
+
+class SDLRendering {
+public:
+
+
+private:
+
+
+};
+
+class SDLEventHandling {
+public:
+
+
+private:
+
+
+};
+
 
 class GameOfLife {
 public:
@@ -21,7 +48,7 @@ public:
         centerX = (screenWidth - windowWidth) / 2;
         centerY = (screenHeight - windowHeight) / 2;
         calculateBorder();
-        calculateCells();
+        //calculateCells();
     }
 
     void eventHandler(bool isRunning) {
@@ -61,7 +88,7 @@ public:
 
                     // Recalculate border
                     calculateBorder();
-                    calculateCells();
+                    //calculateCells();
 
                 }
                 break;
@@ -127,12 +154,6 @@ public:
         // Clear the screen
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Background black
         SDL_RenderClear(renderer); 
-
-        //int newWidth = windowWidth - 312;
-        //int newHeight = windowHeight - 12;
-
-        //// Recalculate the dimensions of the border rectangle
-        //SDL_Rect fullBorder = { 6, 6, newWidth, newHeight };
 
         // Render the border rectangle
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Border white
