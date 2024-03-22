@@ -4,12 +4,41 @@
 #include <stdexcept>
 
 // Forward class declarations
-class Cell; // Grid needs to know what a cell is
+
 
 
 
 
 // Data stuff
+
+class Cell {
+public:
+
+    // Default constructor
+    Cell() : x(0), y(0), size(0), state(false), color({ 0, 0, 0, 255 }) {}
+
+    // Constructor
+    Cell(int x, int y, int size, bool state, std::vector<int> color) : x(x), y(y), size(size), state(state), color(color) {}
+
+
+    int getXPos() {
+        return x;
+    }
+    int getYPos() {
+        return y;
+    }
+    int getSize() {
+        return size;
+    }
+
+
+private:
+    int x, y; // Position
+    int size; // Square cell has same height and width
+    std::vector<int> color;
+    bool state; // True = on, false = off
+
+};
 
 class Grid {
 public:
@@ -75,49 +104,18 @@ private:
 
 
 
-class Cell {
-public:
-
-    // Default constructor
-    Cell() : x(0), y(0), size(0), state(false), color( { 0, 0, 0, 255 } ) {}
-
-    // Constructor
-    Cell(int x, int y, int size, bool state, std::vector<int> color) : x(x), y(y), size(size), state(state), color(color) {}
-
-
-    int getXPos() {
-        return x;
-    }
-    int getYPos() {
-        return y;
-    }
-    int getSize() {
-        return size;
-    }
-
-
-private:
-    int x, y; // Position
-    int size; // Square cell has same height and width
-    std::vector<int> color;
-    bool state; // True = on, false = off
-
-};
-
-
-
 // Graphics stuff
 
 class SDLWindowSetup {
 public:
     // Default Constructor 
     SDLWindowSetup() : cellSize(18), cellSpacing(6), screenWidth(3840), screenHeight(2160), borderSize(6) {
-        calculateWindowHeight();
+    calculateWindowHeight();
         calculateWindowWidth();
         centerX = (screenWidth - windowWidth) / 2;
         centerY = (screenHeight - windowHeight) / 2;
         numRows = grid.getRows();
-        numCols;
+        numCols = grid.getCols();
         fullInitialization();
     }
 
@@ -129,7 +127,7 @@ public:
         centerX = (screenWidth - windowWidth) / 2;
         centerY = (screenHeight - windowHeight) / 2;
         numRows = grid.getRows();
-        numCols;
+        numCols = grid.getCols();
         fullInitialization();
     }
 
@@ -221,8 +219,8 @@ private:
 
 int main(int argc, char* args[]) {
 
-    Grid gameGrid();
-    SDLWindowSetup sdlWindow();
+    Grid gameGrid;
+    SDLWindowSetup sdlWindow;
 
     return 0;
 }
