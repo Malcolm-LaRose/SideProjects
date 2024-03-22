@@ -1,73 +1,92 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include <vector>
+#include <stdexcept>
 
-class Color {
+
+
+class Grid {
 public:
-
     // Constructor
-    Color(int r, int g, int b, int alpha) : red(r), green(g), blue(b), transparency(alpha) {}
-    
-    // Allowed colors
-    enum NamedColor {
-        WHITE,
-        BLACK,
-        RED,
-        GREEN,
-        BLUE
-
-    };
-
-    Color getColorFromNamedColor(NamedColor namedColor) {
-        switch (namedColor) {
-        case WHITE:
-            return Color{ 255, 255, 255, 255 };
-        case BLACK:
-            return Color{ 0, 0, 0, 255 };
-        case RED:
-            return Color{ 255, 0, 0, 255 };
-        case GREEN:
-            return Color{ 0, 255, 0, 255 };
-        case BLUE:
-            return Color{ 0, 0, 255, 255 };
-        default:
-            // Handle invalid named color
-            // You could throw an exception or return a default color
-            return { 0, 0, 0, 0 }; // Default to fully transparent black
+    Grid(int rows, int cols, std::vector<std::vector<int>>& gridData) : rows(rows), cols(cols), gridData(gridData)
+    {
+        // Validate grid data dimensions
+        if (static_cast<int>(gridData.size()) != rows) {
+            throw std::invalid_argument("Invalid number of rows in grid data");
         }
+        for (const auto& row : gridData) {
+            if (static_cast<int>(row.size()) != cols) {
+                throw std::invalid_argument("Invalid number of columns in grid data");
+            }
+        }
+    }
+
+    int getRows() {
+        return rows;
+    }
+
+    int getCols() {
+        return cols;
+    }
+
+    const std::vector<std::vector<int>>& getGridData() const {
+        return gridData; // Returns a reference to the grid data
+    }
+
+    int getGridValueAt(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            throw std::out_of_range("Index out of range");
+        }
+        return gridData[row][col];
     }
 
 
 
 private:
-    int red;
-    int green;
-    int blue;
-    int transparency;
+    int rows;
+    int cols;
+
+    std::vector<std::vector<int>> gridData;
 
 
 };
 
+
+
 class Cell {
 public:
+
+    // Default constructor
+    Cell() : x(0), y(0), size(0), state(false), color( { 0, 0, 0, 255 } ) {}
+
+    // Constructor
+    Cell(int x, int y, int size, bool state, std::vector<int> color) : x(x), y(y), size(size), state(state), color(color) {}
+
+
     int getXPos() {
         return x;
     }
     int getYPos() {
         return y;
     }
+    int getSize() {
+        return size;
+    }
 
 
 private:
     int x, y; // Position
     int size; // Square cell has same height and width
+    std::vector<int> color;
+    bool state; // True = on, false = off
 
 };
 
-class SDLWindowDisplayandRendering {
+class SDLWindowSetup {
 public:
 
     // Constructor
-    SDLWindowDisplayandRendering(const int cellSize, const int cellSpacing, const int screenWidth, const int screenHeight, const int cellX, const int cellY) :
+    SDLWindowSetup(const int cellSize, const int cellSpacing, const int screenWidth, const int screenHeight, const int cellX, const int cellY) :
     cellSize(cellSize), cellSpacing(cellSpacing), screenWidth(screenWidth), screenHeight(screenHeight), cellNumberX(cellX), cellNumberY(cellY) {
         calculateWindowHeight();
         calculateWindowHeight();
@@ -77,9 +96,11 @@ public:
     }
 
     void calculateWindowWidth() {
-        windowHeight = 1; // Some calculation (borderWidth*2)+(cellSize*numCells)+(cellSpacing*(numCells - 1)
+        windowWidth = 1; // Some calculation (borderWidth*2)+(cellSize*numCells)+(cellSpacing*(numCells - 1)
     }
-    void calculateWindowHeight() {}
+    void calculateWindowHeight() {
+        windowHeight = 1;
+    }
 
 
     void initWindow() {
@@ -93,6 +114,7 @@ public:
             exit(1);
         }
     }
+
     void initRenderer() {
         // Create a renderer
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -107,6 +129,7 @@ public:
         // Set initial logical size
         SDL_RenderSetLogicalSize(renderer, windowWidth, windowHeight);
     }
+
     void fullInitialization() {
         // DPI awareness
         SDL_SysWMinfo wmInfo;
@@ -142,6 +165,7 @@ private:
 
     Cell cell;
 
+// Should be able to pass continued rendering off to its own class now
 };
 
 
@@ -151,5 +175,5 @@ public:
 
 private:
 
-
 };
+
