@@ -340,10 +340,23 @@ int main(int argc, char* args[]) {
     Grid gameGrid;
 
     // Render grid
-    SDLRender sdlRender(window, renderer, gameGrid);
-    sdlRender.renderGrid();
+    SDLRender sdlRenderer(window, renderer, gameGrid);
+    sdlRenderer.renderGrid();
 
     // Main loop, event handling, etc.
 
+    bool quit = false;
+    while (!quit) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) { // Check if the user closed the window
+                quit = true;
+            }
+        }
+
+        // Render the grid
+        sdlRenderer.renderGrid();
+    }
+    SDL_Quit();
     return 0;
 }
