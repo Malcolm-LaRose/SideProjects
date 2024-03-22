@@ -3,11 +3,6 @@
 #include <vector>
 #include <stdexcept>
 
-// Forward class declarations
-
-
-
-
 
 // Data stuff
 
@@ -15,41 +10,61 @@ class Cell {
 public:
 
     // Default constructor
-    Cell() : x(0), y(0), size(0), state(false), color({ 0, 0, 0, 255 }) {}
+    Cell() : x(0), y(0), size(0), state(false), color( { 20, 20, 20, 255 } ) {}
+
+    // Lazy constructor
+
 
     // Constructor
     Cell(int x, int y, int size, bool state, std::vector<int> color) : x(x), y(y), size(size), state(state), color(color) {}
 
 
-    int getXPos() {
+    int getXPos() { // Pos of upper left corner
         return x;
     }
-    int getYPos() {
+    int getYPos() { // Pos of upper left corner
         return y;
     }
     int getSize() {
         return size;
     }
+    bool getState() {
+        return state;
+    }
+    std::vector<int> getColor() {
+        return color;
+    }
 
 
 private:
-    int x, y; // Position
+    int x, y; // Position of upper left corner
     int size; // Square cell has same height and width
     std::vector<int> color;
     bool state; // True = on, false = off
+
+    void changeColor() {
+        if (!state) {
+            color = { 20, 20, 20, 255 }; // Neutral grey
+        }
+        else {
+            color = { 255, 204, 0, 255 }; // 593nm phosphor orange
+        }
+    }
+
+
 
 };
 
 class Grid {
 public:
     // Default constructor
-    Grid() : rows(20), cols(20) {
+    Grid() : rows(20), cols(20), cellSize(20), cellSpacing(6) {
         constructGrid();
     }
 
 
     // Constructor
-    Grid(int rows, int cols) : rows(rows), cols(cols) {
+    Grid(int rows, int cols, int cSize, int cSpacing) : rows(rows), cols(cols), cellSize(cSize), cellSpacing(cSpacing) {
         // Validate grid data dimensions
         if (static_cast<int>(gridData.size()) != rows) {
             throw std::invalid_argument("Invalid number of rows in grid data");
@@ -71,7 +86,7 @@ public:
         return cols;
     }
 
-    const std::vector<std::vector<Cell>>& getGridData() const {
+    std::vector<std::vector<Cell>> getGridData(){
         return gridData; // Returns a reference to the grid data
     }
 
@@ -95,9 +110,23 @@ public:
         
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                // Construct an empty cell
+                // Construct an empty cell and iterate over coordinates and gridData
+
+                int startingPosX = 1; // Pos of upper left corner of first cell
+                int startingPosY = 1; // """
+
+                gridData[i][j] = Cell();
+
             }
         }
+    }
+
+    const int getCellSize() const {
+        return cellSize;
+    }
+
+    const int getCellSpacing() const {
+        return cellSpacing;
     }
 
 
@@ -105,6 +134,9 @@ public:
 private:
     int rows;
     int cols;
+
+    const int cellSize;
+    const int cellSpacing;
 
     std::vector<std::vector<Cell>> gridData;
 
@@ -229,8 +261,6 @@ public:
 
 
 
-
-
 private:
     SDL_Window* window;
     SDL_Renderer* renderer;
@@ -255,22 +285,36 @@ private:
 
 class SDLRender {
 public:
+    SDLRender(SDL_Window* window, SDL_Renderer* renderer, Grid grid)
+        : window(window), renderer(renderer), grid(grid) {}
+
+    void renderGrid() {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Set background color
+
+        // Clear the renderer
+        SDL_RenderClear(renderer);
 
 
 
+        // Render cells
+        std::vector<std::vector<Cell>> gridData = grid.getGridData();
+        for (int i = 0; i < grid.getRows(); ++i) {
+            for (int j = 0; j < grid.getCols(); ++j) {
+                Cell& cell = gridData[i][j];
+                SDL_SetRenderDrawColor(renderer, cell.getColor()[0], cell.getColor()[1], cell.getColor()[2], cell.getColor()[3]);
+                SDL_Rect cellRect = { j * (cell.getSize() + grid.getCellSpacing()), i * (cell.getSize() + grid.getCellSpacing()), cell.getSize(), cell.getSize() };
+                SDL_RenderFillRect(renderer, &cellRect);
+            }
+        }
 
-
-
-    void calculateBorder() {
-
-    }
-
-    void renderBackground() {
-
+        // Present the renderer
+        SDL_RenderPresent(renderer);
     }
 
 private:
-
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    Grid grid;
 
 };
 
@@ -285,9 +329,21 @@ private:
 
 
 int main(int argc, char* args[]) {
-
-    Grid gameGrid;
+    // Initialize SDL and create window
     SDLWindowSetupAndRun sdlWindow;
+
+    // Get window and renderer
+    SDL_Window* window = sdlWindow.getWindow();
+    SDL_Renderer* renderer = sdlWindow.getRenderer();
+
+    // Create grid
+    Grid gameGrid;
+
+    // Render grid
+    SDLRender sdlRender(window, renderer, gameGrid);
+    sdlRender.renderGrid();
+
+    // Main loop, event handling, etc.
 
     return 0;
 }
