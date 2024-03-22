@@ -91,6 +91,15 @@ public:
         }
     }
 
+    void initializeGrid() {
+        
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                // Construct an empty cell
+            }
+        }
+    }
+
 
 
 private:
@@ -102,14 +111,29 @@ private:
 
 };
 
+class Border {
+public:
+    // Default constructor
+    Border() :borderSizePX(6) {}
+
+
+    int getBorderSize() {
+        return borderSizePX;
+    }
+
+private:
+    int borderSizePX;
+
+};
+
 
 
 // Graphics stuff
 
-class SDLWindowSetup {
+class SDLWindowSetupAndRun {
 public:
     // Default Constructor 
-    SDLWindowSetup() : cellSize(18), cellSpacing(6), screenWidth(3840), screenHeight(2160), borderSize(6) {
+    SDLWindowSetupAndRun() : cellSize(18), cellSpacing(6), screenWidth(3840), screenHeight(2160), borderSize(6) {
     calculateWindowHeight();
         calculateWindowWidth();
         centerX = (screenWidth - windowWidth) / 2;
@@ -120,7 +144,7 @@ public:
     }
 
     // Constructor
-    SDLWindowSetup(const int cellSize, const int cellSpacing, const int screenWidth, const int screenHeight, const int borderSize) :
+    SDLWindowSetupAndRun(const int cellSize, const int cellSpacing, const int screenWidth, const int screenHeight, const int borderSize) :
     cellSize(cellSize), cellSpacing(cellSpacing), screenWidth(screenWidth), screenHeight(screenHeight), borderSize(borderSize) {
         calculateWindowHeight();
         calculateWindowWidth();
@@ -131,7 +155,7 @@ public:
         fullInitialization();
     }
 
-
+    // Window setup functions
 
     void calculateWindowWidth() {
         windowWidth = (cellSpacing*2)+(cellSize*numCols)+(borderSize*2); // Gutters + cells + borders = full width
@@ -185,6 +209,28 @@ public:
     }
 
 
+    // Accessor functions
+
+    SDL_Window* getWindow() {
+        return window;
+    }
+
+    SDL_Renderer* getRenderer() {
+        return renderer;
+    }
+
+    int getWindowWidth() {
+        return windowWidth;
+    }
+
+    int getWindowHeight() {
+        return windowHeight;
+    }
+
+
+
+
+
 private:
     SDL_Window* window;
     SDL_Renderer* renderer;
@@ -207,6 +253,27 @@ private:
 // Should be able to pass continued rendering off to its own class now
 };
 
+class SDLRender {
+public:
+
+
+
+
+
+
+    void calculateBorder() {
+
+    }
+
+    void renderBackground() {
+
+    }
+
+private:
+
+
+};
+
 
 class SDLEventHandling {
 public:
@@ -220,7 +287,7 @@ private:
 int main(int argc, char* args[]) {
 
     Grid gameGrid;
-    SDLWindowSetup sdlWindow;
+    SDLWindowSetupAndRun sdlWindow;
 
     return 0;
 }
