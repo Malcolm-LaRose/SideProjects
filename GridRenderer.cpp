@@ -3,13 +3,24 @@
 #include <vector>
 #include <stdexcept>
 
+// Forward class declarations
+class Cell; // Grid needs to know what a cell is
 
+
+
+
+// Data stuff
 
 class Grid {
 public:
+    // Default constructor
+    Grid() : rows(20), cols(20) {
+        constructGrid();
+    }
+
+
     // Constructor
-    Grid(int rows, int cols, std::vector<std::vector<int>>& gridData) : rows(rows), cols(cols), gridData(gridData)
-    {
+    Grid(int rows, int cols) : rows(rows), cols(cols) {
         // Validate grid data dimensions
         if (static_cast<int>(gridData.size()) != rows) {
             throw std::invalid_argument("Invalid number of rows in grid data");
@@ -19,6 +30,8 @@ public:
                 throw std::invalid_argument("Invalid number of columns in grid data");
             }
         }
+
+        constructGrid();
     }
 
     int getRows() {
@@ -29,15 +42,24 @@ public:
         return cols;
     }
 
-    const std::vector<std::vector<int>>& getGridData() const {
+    const std::vector<std::vector<Cell>>& getGridData() const {
         return gridData; // Returns a reference to the grid data
     }
 
-    int getGridValueAt(int row, int col) {
+    Cell getGridValueAt(int row, int col) {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             throw std::out_of_range("Index out of range");
         }
         return gridData[row][col];
+    }
+
+    void constructGrid() { // Make the data grid
+        gridData.resize(rows); // Works vertically
+
+        // For each row, resize the vector to have 'cols' columns
+        for (int i = 0; i < rows; ++i) { // Works horizontally
+            gridData[i].resize(cols);
+        }
     }
 
 
@@ -46,7 +68,7 @@ private:
     int rows;
     int cols;
 
-    std::vector<std::vector<int>> gridData;
+    std::vector<std::vector<Cell>> gridData;
 
 
 };
@@ -82,24 +104,42 @@ private:
 
 };
 
+
+
+// Graphics stuff
+
 class SDLWindowSetup {
 public:
-
-    // Constructor
-    SDLWindowSetup(const int cellSize, const int cellSpacing, const int screenWidth, const int screenHeight, const int cellX, const int cellY) :
-    cellSize(cellSize), cellSpacing(cellSpacing), screenWidth(screenWidth), screenHeight(screenHeight), cellNumberX(cellX), cellNumberY(cellY) {
+    // Default Constructor 
+    SDLWindowSetup() : cellSize(18), cellSpacing(6), screenWidth(3840), screenHeight(2160), borderSize(6) {
         calculateWindowHeight();
-        calculateWindowHeight();
+        calculateWindowWidth();
         centerX = (screenWidth - windowWidth) / 2;
         centerY = (screenHeight - windowHeight) / 2;
-
+        numRows = grid.getRows();
+        numCols;
+        fullInitialization();
     }
+
+    // Constructor
+    SDLWindowSetup(const int cellSize, const int cellSpacing, const int screenWidth, const int screenHeight, const int borderSize) :
+    cellSize(cellSize), cellSpacing(cellSpacing), screenWidth(screenWidth), screenHeight(screenHeight), borderSize(borderSize) {
+        calculateWindowHeight();
+        calculateWindowWidth();
+        centerX = (screenWidth - windowWidth) / 2;
+        centerY = (screenHeight - windowHeight) / 2;
+        numRows = grid.getRows();
+        numCols;
+        fullInitialization();
+    }
+
+
 
     void calculateWindowWidth() {
-        windowWidth = 1; // Some calculation (borderWidth*2)+(cellSize*numCells)+(cellSpacing*(numCells - 1)
+        windowWidth = (cellSpacing*2)+(cellSize*numCols)+(borderSize*2); // Gutters + cells + borders = full width
     }
     void calculateWindowHeight() {
-        windowHeight = 1;
+        windowHeight = (cellSpacing * 2) + (cellSize * numRows) + (borderSize * 2); // Gutters + cells + borders = full height
     }
 
 
@@ -154,16 +194,17 @@ private:
     const int screenWidth;
     const int screenHeight;
 
+    const int borderSize;
     int windowWidth;
     int windowHeight;
     int centerX;
     int centerY;
     const int cellSize; // Square cells have same height and width
     const int cellSpacing; 
-    const int cellNumberX; // Number of cells in X direction
-    const int cellNumberY; // Number of cells in Y direction
+    int numRows; // Number of cells in X direction
+    int numCols; // Number of cells in Y direction
 
-    Cell cell;
+    Grid grid;
 
 // Should be able to pass continued rendering off to its own class now
 };
@@ -177,3 +218,11 @@ private:
 
 };
 
+
+int main(int argc, char* args[]) {
+
+    Grid gameGrid();
+    SDLWindowSetup sdlWindow();
+
+    return 0;
+}
