@@ -2,6 +2,7 @@
 #include <SDL_syswm.h>
 #include <vector>
 #include <stdexcept>
+#include <iostream>
 
 
 // Data stuff
@@ -55,16 +56,31 @@ private:
 
 };
 
+class Border {
+public:
+    // Default constructor
+    Border() :borderSizePX(6) {}
+
+
+    int getBorderSize() {
+        return borderSizePX;
+    }
+
+private:
+    int borderSizePX;
+
+};
+
 class Grid {
 public:
     // Default constructor
-    Grid() : rows(20), cols(20), cellSize(20), cellSpacing(6) {
+    Grid() : rows(20), cols(20), cellSpacing(6) {
         constructGrid();
     }
 
 
     // Constructor
-    Grid(int rows, int cols, int cSize, int cSpacing) : rows(rows), cols(cols), cellSize(cSize), cellSpacing(cSpacing) {
+    Grid(int rows, int cols, int cSize, int cSpacing) : rows(rows), cols(cols), cellSpacing(cSpacing) {
         // Validate grid data dimensions
         if (static_cast<int>(gridData.size()) != rows) {
             throw std::invalid_argument("Invalid number of rows in grid data");
@@ -90,7 +106,7 @@ public:
         return gridData; // Returns a reference to the grid data
     }
 
-    Cell getGridValueAt(int row, int col) {
+    Cell getGridCellAt(int row, int col) {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             throw std::out_of_range("Index out of range");
         }
@@ -104,26 +120,38 @@ public:
         for (int i = 0; i < rows; ++i) { // Works horizontally
             gridData[i].resize(cols);
         }
+        std::cout << "Grid constructed" << std::endl;
     }
 
     void initializeGrid() {
-        
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 // Construct an empty cell and iterate over coordinates and gridData
+                int startingPosX = border.getBorderSize() + j * (cellSpacing + 20); // Calculate starting X position of cell
+                int startingPosY = border.getBorderSize() + i * (cellSpacing + 20); // Calculate starting Y position of cell
 
-                int startingPosX = 1; // Pos of upper left corner of first cell
-                int startingPosY = 1; // """
+                // Initialize the cell at current position
+                gridData[i][j] = Cell(startingPosX, startingPosY, 20, false, { 20, 20, 20, 255 });
 
-                gridData[i][j] = Cell();
+                // Print cell information
+                std::cout << "Cell color: " << gridData[i][j].getColor()[0] << ", "
+                    << gridData[i][j].getColor()[1] << ", "
+                    << gridData[i][j].getColor()[2] << ", "
+                    << gridData[i][j].getColor()[3] << std::endl;
+                std::cout << "Cell position: (" << i << ", " << j << ")" << std::endl;
 
+                if (j == 19) {
+                    break;
+                }
+            }
+            if (i == 19) {
+                break;
             }
         }
+        std::cout << "Grid init'ed" << std::endl;
     }
 
-    const int getCellSize() const {
-        return cellSize;
-    }
+
 
     const int getCellSpacing() const {
         return cellSpacing;
@@ -135,174 +163,46 @@ private:
     int rows;
     int cols;
 
-    const int cellSize;
     const int cellSpacing;
 
     std::vector<std::vector<Cell>> gridData;
+    Border border;
 
 
 };
 
-class Border {
-public:
-    // Default constructor
-    Border() :borderSizePX(6) {}
-
-
-    int getBorderSize() {
-        return borderSizePX;
-    }
-
-private:
-    int borderSizePX;
-
-};
 
 
 
 // Graphics stuff
-
-class SDLWindowSetupAndRun {
-public:
-    // Default Constructor 
-    SDLWindowSetupAndRun() : cellSize(18), cellSpacing(6), screenWidth(3840), screenHeight(2160), borderSize(6) {
-    calculateWindowHeight();
-        calculateWindowWidth();
-        centerX = (screenWidth - windowWidth) / 2;
-        centerY = (screenHeight - windowHeight) / 2;
-        numRows = grid.getRows();
-        numCols = grid.getCols();
-        fullInitialization();
-    }
-
-    // Constructor
-    SDLWindowSetupAndRun(const int cellSize, const int cellSpacing, const int screenWidth, const int screenHeight, const int borderSize) :
-    cellSize(cellSize), cellSpacing(cellSpacing), screenWidth(screenWidth), screenHeight(screenHeight), borderSize(borderSize) {
-        calculateWindowHeight();
-        calculateWindowWidth();
-        centerX = (screenWidth - windowWidth) / 2;
-        centerY = (screenHeight - windowHeight) / 2;
-        numRows = grid.getRows();
-        numCols = grid.getCols();
-        fullInitialization();
-    }
-
-    // Window setup functions
-
-    void calculateWindowWidth() {
-        windowWidth = (cellSpacing*2)+(cellSize*numCols)+(borderSize*2); // Gutters + cells + borders = full width
-    }
-    void calculateWindowHeight() {
-        windowHeight = (cellSpacing * 2) + (cellSize * numRows) + (borderSize * 2); // Gutters + cells + borders = full height
-    }
-
-
-    void initWindow() {
-        // Create a window
-        window = SDL_CreateWindow("2D Grid", centerX, centerY, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-
-        // Check if the window was created successfully
-        if (!window) {
-            // Handle window creation failure
-            SDL_Log("Failed to create window: %s", SDL_GetError());
-            exit(1);
-        }
-    }
-
-    void initRenderer() {
-        // Create a renderer
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-        // Check if the renderer was created successfully
-        if (!renderer) {
-            // Handle renderer creation failure
-            SDL_Log("Failed to create renderer: %s", SDL_GetError());
-            exit(1);
-        }
-
-        // Set initial logical size
-        SDL_RenderSetLogicalSize(renderer, windowWidth, windowHeight);
-    }
-
-    void fullInitialization() {
-        // DPI awareness
-        SDL_SysWMinfo wmInfo;
-        SDL_VERSION(&wmInfo.version);
-        SDL_GetWindowWMInfo(SDL_CreateWindow("", 0, 0, 100, 100, SDL_WINDOW_HIDDEN), &wmInfo);
-        SetProcessDPIAware(); // Or use SetProcessDpiAwareness() for more control
-
-
-        // Initialize SDL
-        SDL_Init(SDL_INIT_VIDEO);
-
-        initWindow();
-        initRenderer();
-
-    }
-
-
-    // Accessor functions
-
-    SDL_Window* getWindow() {
-        return window;
-    }
-
-    SDL_Renderer* getRenderer() {
-        return renderer;
-    }
-
-    int getWindowWidth() {
-        return windowWidth;
-    }
-
-    int getWindowHeight() {
-        return windowHeight;
-    }
-
-
-
-private:
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-
-    const int screenWidth;
-    const int screenHeight;
-
-    const int borderSize;
-    int windowWidth;
-    int windowHeight;
-    int centerX;
-    int centerY;
-    const int cellSize; // Square cells have same height and width
-    const int cellSpacing; 
-    int numRows; // Number of cells in X direction
-    int numCols; // Number of cells in Y direction
-
-    Grid grid;
-
-// Should be able to pass continued rendering off to its own class now
-};
-
 class SDLRender {
 public:
     SDLRender(SDL_Window* window, SDL_Renderer* renderer, Grid grid)
         : window(window), renderer(renderer), grid(grid) {}
 
     void renderGrid() {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Set background color
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Set background color (white)
 
         // Clear the renderer
         SDL_RenderClear(renderer);
-
-
 
         // Render cells
         std::vector<std::vector<Cell>> gridData = grid.getGridData();
         for (int i = 0; i < grid.getRows(); ++i) {
             for (int j = 0; j < grid.getCols(); ++j) {
                 Cell& cell = gridData[i][j];
+
+                // Debug output to check cell position
+                std::cout << "Cell position: (" << j << ", " << i << ")" << std::endl;
+                std::cout << "Cell color: " << cell.getColor()[0] << ", " << cell.getColor()[1] << ", " << cell.getColor()[2] << ", " << cell.getColor()[3] << std::endl; // Debug output
+
                 SDL_SetRenderDrawColor(renderer, cell.getColor()[0], cell.getColor()[1], cell.getColor()[2], cell.getColor()[3]);
-                SDL_Rect cellRect = { j * (cell.getSize() + grid.getCellSpacing()), i * (cell.getSize() + grid.getCellSpacing()), cell.getSize(), cell.getSize() };
+
+                int cellX = j * (cell.getSize() + grid.getCellSpacing());
+                int cellY = i * (cell.getSize() + grid.getCellSpacing());
+                SDL_Rect cellRect = { cellX, cellY, cell.getSize(), cell.getSize() };
+
+
                 SDL_RenderFillRect(renderer, &cellRect);
             }
         }
@@ -318,45 +218,88 @@ private:
 
 };
 
+void renderGrid(SDL_Window* window, SDL_Renderer* renderer, Grid grid) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Set background color (white)
 
-class SDLEventHandling {
-public:
+    // Clear the renderer
+    SDL_RenderClear(renderer);
+
+    // Render cells
+    std::vector<std::vector<Cell>> gridData = grid.getGridData();
+    for (int i = 0; i < grid.getRows(); ++i) {
+        for (int j = 0; j < grid.getCols(); ++j) {
+            Cell& cell = gridData[i][j];
+
+            // Debug output to check cell position
+            std::cout << "Cell position: (" << j << ", " << i << ")" << std::endl;
+            std::cout << "Cell color: " << cell.getColor()[0] << ", " << cell.getColor()[1] << ", " << cell.getColor()[2] << ", " << cell.getColor()[3] << std::endl; // Debug output
+
+            SDL_SetRenderDrawColor(renderer, cell.getColor()[0], cell.getColor()[1], cell.getColor()[2], cell.getColor()[3]);
+
+            int cellX = j * (cell.getSize() + grid.getCellSpacing());
+            int cellY = i * (cell.getSize() + grid.getCellSpacing());
+            SDL_Rect cellRect = { cellX, cellY, cell.getSize(), cell.getSize() };
 
 
-private:
+            SDL_RenderFillRect(renderer, &cellRect);
+        }
+    }
 
-};
+    // Present the renderer
+    SDL_RenderPresent(renderer);
+}
 
 
 int main(int argc, char* args[]) {
-    // Initialize SDL and create window
-    SDLWindowSetupAndRun sdlWindow;
-
-    // Get window and renderer
-    SDL_Window* window = sdlWindow.getWindow();
-    SDL_Renderer* renderer = sdlWindow.getRenderer();
-
     // Create grid
     Grid gameGrid;
+    gameGrid.initializeGrid();
+
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        SDL_Log("SDL initialization failed: %s", SDL_GetError());
+        return 1;
+    }
+
+    // Create window
+    SDL_Window* window = SDL_CreateWindow("2D Grid", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    if (!window) {
+        SDL_Log("Failed to create window: %s", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    // Create renderer
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!renderer) {
+        SDL_Log("Failed to create renderer: %s", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
     // Render grid
-    SDLRender sdlRenderer(window, renderer, gameGrid);
-    sdlRenderer.renderGrid();
+    renderGrid(window, renderer, gameGrid);
 
     // Main loop, event handling, etc.
-
     bool quit = false;
     while (!quit) {
+        // Handle events
         SDL_Event e;
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) { // Check if the user closed the window
                 quit = true;
             }
+            // Handle other events such as window resizing if necessary
         }
 
         // Render the grid
-        sdlRenderer.renderGrid();
+        renderGrid(window, renderer, gameGrid);
     }
+
+    // Cleanup and quit SDL
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
 }
