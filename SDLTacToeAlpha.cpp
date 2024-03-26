@@ -31,6 +31,10 @@ SDL_Texture* gPlayerXTexture = NULL;
 SDL_Texture* gPlayerOTexture = NULL;
 SDL_Texture* gWinLineTexture = NULL;
 
+void updateTexture() {
+    return;
+}
+
 
 SDL_Texture* loadTexture(const char* path)
 {
