@@ -35,6 +35,44 @@ void updateTexture() {
     return;
 }
 
+//void updateTexture() { // PLACEHOLDER IDEA
+//    // Example game state for Tic-Tac-Toe
+//    // Assume a 3x3 game board represented by a 2D array
+//    // '0' represents an empty cell, '1' represents a cell with 'X', '2' represents a cell with 'O'
+//    int gameState[3][3] = {
+//        {1, 0, 2},
+//        {0, 1, 2},
+//        {2, 1, 0}
+//    };
+//
+//    // Calculate the dimensions of each cell on the game board
+//    int cellWidth = SCREEN_WIDTH / 3;
+//    int cellHeight = SCREEN_HEIGHT / 3;
+//
+//    // Iterate through the game state and render textures for each cell
+//    for (int i = 0; i < 3; ++i) {
+//        for (int j = 0; j < 3; ++j) {
+//            // Calculate the position of the current cell
+//            int cellX = j * cellWidth;
+//            int cellY = i * cellHeight;
+//
+//            // Render different textures based on the game state
+//            if (gameState[i][j] == 1) {
+//                renderTexture(gPlayerXTexture, cellX, cellY, cellWidth, cellHeight);
+//            }
+//            else if (gameState[i][j] == 2) {
+//                renderTexture(gPlayerOTexture, cellX, cellY, cellWidth, cellHeight);
+//            }
+//            // You can add more conditions based on your game logic
+//            // For example, rendering a different texture for an empty cell
+//            else {
+//                // Render an empty cell texture (if available)
+//                // Example: renderTexture(gEmptyCellTexture, cellX, cellY, cellWidth, cellHeight);
+//            }
+//        }
+//    }
+//}
+
 
 SDL_Texture* loadTexture(const char* path)
 {
