@@ -25,35 +25,30 @@ int main(int argc, char* argv[]) {
     bool quit = false;
     while (!quit) {
         bool validEventDetected = false;
-        bool waitingForKeyUp = false;
         while (!validEventDetected) {
             SDL_Event test_event;
-            if (!waitingForKeyUp) {
-                while (SDL_PollEvent(&test_event)) {
-                    auto& pressedKey = test_event.key.keysym.sym;
-                    switch (test_event.type) {
-                    case SDL_QUIT:
+            while (SDL_PollEvent(&test_event)) {
+
+                auto& pressedKey = test_event.key.keysym.sym;
+                
+                    if (test_event.type == SDL_QUIT) {
                         quit = true;
                         break;
-                    case SDL_MOUSEMOTION:
+                    }
+                    if (test_event.type == SDL_MOUSEMOTION) {
                         validEventDetected = true;
                         printf("Current mouse position is: (%d, %d)\n", test_event.motion.x, test_event.motion.y);
                         break;
-                    case SDL_KEYDOWN:
+                    }
+                    if (test_event.type == SDL_KEYDOWN && test_event.key.repeat == 0) {
                         validEventDetected = true;
                         printf("This key was pressed: %c \n", *SDL_GetKeyName(pressedKey));
-                        waitingForKeyUp = true;
-                        break;
-                    default:
-                        printf("Unhandled Event!\n");
-                        break;
+                        // Compare pressed key to appropriate key in displayed strategem
                     }
-                }
-            }
-            else {
-                if (SDL_WaitEvent(&test_event) && test_event.type == SDL_KEYUP) {
-                    waitingForKeyUp = false; // Reset the flag when key is released
-                }
+                    else {
+                        // Do nothing
+                        // printf("Unhandled Event!\n");
+                    }
             }
         }
     }
