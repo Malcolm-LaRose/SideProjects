@@ -19,7 +19,7 @@ public:
 
         c_window = SDL_CreateWindow("SDL Mouse Motion Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 3840, 2160, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_HIDDEN);
         SDL_HideWindow(c_window);
-        SDL_SetWindowOpacity(c_window, 0.25f);
+        SDL_SetWindowOpacity(c_window, 0.1f);
 
         if (!c_window) {
             printf("Failed to create SDL window: %s\n", SDL_GetError());
@@ -93,6 +93,14 @@ public:
             if (c_event.type == SDL_MOUSEMOTION) {
                 printf("Current mouse position is: (%d, %d)\n", c_event.motion.x, c_event.motion.y);
                 break;
+            }
+            if (c_event.type == SDL_MOUSEBUTTONDOWN) {
+                if (c_event.button.button == SDL_BUTTON_LEFT) {
+                    printf("Left click!\n");
+                }
+                if (c_event.button.button == SDL_BUTTON_RIGHT) {
+                    printf("Right click!\n");
+                }
             }
             if (c_event.type == SDL_KEYDOWN && c_event.key.repeat == 0) {
                 // printf("This key was pressed: %c\n", *SDL_GetKeyName(pressedKey));
