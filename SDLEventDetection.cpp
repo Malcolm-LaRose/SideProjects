@@ -1,13 +1,23 @@
 #include <SDL.h>
 #include <stdio.h>
 
+void quitSDL(SDL_Renderer* rend, SDL_Window* wind) {
+    SDL_DestroyRenderer(rend);
+    SDL_DestroyWindow(wind);
+    SDL_Quit();
+
+    exit(0);
+}
+
 int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL initialization failed: %s\n", SDL_GetError());
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("SDL Mouse Motion Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("SDL Mouse Motion Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 3840, 2160, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_HIDDEN);
+    SDL_HideWindow(window);
+    SDL_SetWindowOpacity(window, 0.05f);
     if (!window) {
         printf("Failed to create SDL window: %s\n", SDL_GetError());
         SDL_Quit();
@@ -35,6 +45,7 @@ int main(int argc, char* argv[]) {
                         quit = true;
                         break;
                     }
+                    
                     if (test_event.type == SDL_MOUSEMOTION) {
                         validEventDetected = true;
                         printf("Current mouse position is: (%d, %d)\n", test_event.motion.x, test_event.motion.y);
@@ -44,6 +55,11 @@ int main(int argc, char* argv[]) {
                         validEventDetected = true;
                         printf("This key was pressed: %c \n", *SDL_GetKeyName(pressedKey));
                         // Compare pressed key to appropriate key in displayed strategem
+                        if (pressedKey == SDLK_DELETE) {
+                            quit = true;
+                            quitSDL(renderer, window);
+                            break;
+                        }
                     }
                     else {
                         // Do nothing
@@ -52,10 +68,6 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
 
     return 0;
 }
