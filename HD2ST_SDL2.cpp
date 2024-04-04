@@ -63,6 +63,21 @@ public:
 
     // Method(s) for updating renderer
 
+    void clearRenderer() {}
+
+    void drawRenderer() {}
+
+    void showRenderer() {}
+
+
+
+    void updateRenderer() {
+        // Clear renderer
+
+        // Perform all render functions (draw calls)
+
+        // Show drawings
+    }
 
 
     // Method for handling events
@@ -80,16 +95,20 @@ public:
                 break;
             }
             if (c_event.type == SDL_KEYDOWN && c_event.key.repeat == 0) {
-                printf("This key was pressed: %c\n", *SDL_GetKeyName(pressedKey));
+                // printf("This key was pressed: %c\n", *SDL_GetKeyName(pressedKey));
                 // Compare pressed key to appropriate key in displayed strategem
                 if (pressedKey == SDLK_DELETE) {
                     printf("Quitting...\n");
                     quitSDL(c_renderer, c_window);
                     break;
                 }
-                else if (false) {
-                    // If a valid key is pressed, push it to a vector? or some such
+                if (isWASDKey(pressedKey) || isArrowKey(pressedKey)) {
+                    // Do something with these keys!
+                    printf("This key was pressed: %c\n", *SDL_GetKeyName(pressedKey));
+
+                    // Here, call a function to draw an arrow corresponding to the 'direction' of the key pressed
                 }
+
             }
             else {
                 // Do nothing
@@ -107,6 +126,28 @@ private:
     SDL_Window* c_window;
     SDL_Renderer* c_renderer;
     SDL_Event c_event;
+
+    enum WASDKeys {
+        Key_W = SDLK_w,
+        Key_A = SDLK_a,
+        Key_S = SDLK_s,
+        Key_D = SDLK_d
+    };
+
+    enum ArrowKeys {
+        Key_Up = SDLK_UP,
+        Key_Left = SDLK_LEFT,
+        Key_Down = SDLK_DOWN,
+        Key_Right = SDLK_RIGHT
+    };
+
+    bool isWASDKey(int key) const {
+        return key == Key_W || key == Key_A || key == Key_S || key == Key_D;
+    }
+
+    bool isArrowKey(int key) const {
+        return key == Key_Up || key == Key_Left || key == Key_Down || key == Key_Right;
+    }
 
 };
 
