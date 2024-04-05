@@ -112,10 +112,24 @@ public:
                 }
                 if (isWASDKey(pressedKey) || isArrowKey(pressedKey)) {
                     // Do something with these keys!
-                    printf("This key was pressed: %c\n", *SDL_GetKeyName(pressedKey));
+                    // printf("This key was pressed: %c\n", *SDL_GetKeyName(pressedKey));
 
-                    // Here, call a function to draw an arrow corresponding to the 'direction' of the key pressed
+                    // Here, call a function to draw an arrow corresponding to the 'direction' of the key pressed (this is a placeholder!)
+                    if (isUpKey(pressedKey)) {
+                        printf("Up!\n");
+                    }
+                    else if (isLeftKey(pressedKey)) {
+                        printf("Left!\n");
+                    }
+                    else if (isDownKey(pressedKey)) {
+                        printf("Down!\n");
+                    }
+                    else if (isRightKey(pressedKey)) {
+                        printf("Right!\n");
+                    }
+                    
                 }
+                
 
             }
             else {
@@ -157,6 +171,21 @@ private:
         return key == Key_Up || key == Key_Left || key == Key_Down || key == Key_Right;
     }
 
+    bool isUpKey(int key) const {
+        return key == Key_W || key == Key_Up;
+    }
+
+    bool isLeftKey(int key) const {
+        return key == Key_A || key == Key_Left;
+    }
+
+    bool isDownKey(int key) const {
+        return key == Key_S || key == Key_Down;
+    }
+
+    bool isRightKey(int key) const {
+        return key == Key_D || key == Key_Right;
+    }
 };
 
 
