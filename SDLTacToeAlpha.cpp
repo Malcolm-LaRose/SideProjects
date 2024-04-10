@@ -1,6 +1,43 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <vector>
 #include <stdio.h>
+
+class Player {
+public:
+
+    Player(char pName, SDL_Texture* pText) : playerName(pName), playerTexture(pText) {} // Must give players a name and a texture
+
+    char getPlayerName() {
+        return playerName;
+    }
+
+    SDL_Texture* getPlayerTexture() {
+        return playerTexture;
+    }
+
+
+private: 
+    SDL_Texture* playerTexture;
+    char playerName;
+
+
+};
+
+class TicTacToe {
+public:
+
+
+
+private:
+    std::vector<std::vector<char>> boardState;
+    Player playerOne;
+    Player playerTwo;
+    
+
+};
+
+
 
 // Screen dimension constants (non-const so we can resize)
 int SCREEN_WIDTH = 500;
@@ -140,7 +177,7 @@ bool init()
             else
             {
                 // Initialize renderer color
-                SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 
                 // Initialize PNG loading
                 int imgFlags = IMG_INIT_PNG;
