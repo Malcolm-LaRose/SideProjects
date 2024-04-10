@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <vector>
+#include <utility>
 #include <stdio.h>
 
 class Player {
@@ -16,16 +17,30 @@ public:
         return playerTexture;
     }
 
+    ~Player() {
+        if (playerTexture != nullptr)
+        {
+            SDL_DestroyTexture(playerTexture);
+            playerTexture = nullptr;
+        }
+    }
 
 private: 
-    SDL_Texture* playerTexture;
     char playerName;
+    SDL_Texture* playerTexture;
 
 
 };
 
 class TicTacToe {
 public:
+
+    // void startGame() {} Maybe replaced with constructor
+    // TicTacToe(Player one, Player two) : playerOne(one), playerTwo(two) {}
+
+    void setPlayerOneAndTwo() {
+    };
+
 
 
 
@@ -35,17 +50,17 @@ private:
     Player playerTwo;
     
 
-};
+};// To be worked on later
 
 
 
 // Screen dimension constants (non-const so we can resize)
-int SCREEN_WIDTH = 500;
-int SCREEN_HEIGHT = 500;
+int SCREEN_WIDTH = 600;
+int SCREEN_HEIGHT = 600;
 
 // Initial screen dimension constants
-int initialScreenWidth = 500;
-int initialScreenHeight = 500;
+int initialScreenWidth = 600;
+int initialScreenHeight = 600;
 
 // Function prototypes
 bool init();
@@ -251,6 +266,22 @@ void close()
     SDL_Quit();
 }
 
+
+std::pair<int,int> getMousePosition(SDL_Event event) {
+    return { event.motion.x, event.motion.y };
+}
+
+void detectCellClicked(SDL_Event event) {
+    // Should eventually return iterators for accessing game state array
+    std::pair<int, int> mousePosition = getMousePosition(event);
+    printf("You clicked these coordinates: (%d, %d)\n", mousePosition.first, mousePosition.second);
+
+
+
+    printf("You clicked on cell (%d, %d)\n",0,0);
+}
+
+
 int main(int argc, char* args[])
 {
     // Start up SDL and create window
@@ -273,6 +304,10 @@ int main(int argc, char* args[])
             // Event Handler
             SDL_Event e;
 
+            // Player init
+            Player playerX('x', gPlayerXTexture);
+            Player playerO('o', gPlayerOTexture);
+
             while (!quit) {
                 // Handle events on queue
                 while (SDL_PollEvent(&e) != 0)
@@ -292,8 +327,19 @@ int main(int argc, char* args[])
                             // Add more window event handling as needed
                         }
                         break;
+                    case SDL_MOUSEBUTTONUP:
+                        // Detect where click occured
+                        if (e.button.button == SDL_BUTTON_LEFT || e.button.button == SDL_BUTTON_RIGHT) {
+                            detectCellClicked(e);
+                        }
+                        // put player texture in region detected
+                        // if click out of bounds, do nothing
+                        // 
+
                         // Add more event handling as needed
+                        break;
                     }
+
                 }
 
                 // Clear screen
