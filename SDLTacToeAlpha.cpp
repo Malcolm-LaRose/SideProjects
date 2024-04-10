@@ -271,26 +271,91 @@ std::pair<int,int> getMousePosition(SDL_Event event) {
     return { event.motion.x, event.motion.y };
 }
 
-void detectCellClicked(SDL_Event event) {
+std::pair<int, int> detectCellClicked(SDL_Event event) {
     // Should eventually return iterators for accessing game state array
     std::pair<int, int> mousePosition = getMousePosition(event);
     int* xCoord = &mousePosition.first; // No need to make a new copy, lets try using a pointer
     int* yCoord = &mousePosition.second;
     printf("You clicked these coordinates: (%d, %d)\n", *xCoord, *yCoord);
 
-    //if (x coord less than 195) {
-    //    if (y coord less than 195) {
+    std::pair<int, int> clickedCell { 0, 0 };
+    bool coordFound = false;
+    while (!coordFound) {
+        if (*xCoord < 195) {
+            clickedCell.first = 0;
+            if (*yCoord < 195) {
+                clickedCell.second = 0;
+                coordFound = true;
+                break;
+            }
+            else if (*yCoord > 200 && *yCoord < 395) {
+                clickedCell.second = 1;
+                coordFound = true;
+                break;
+            }
+            else if (*yCoord > 400 && *yCoord < 600) {
+                clickedCell.second = 2;
+                coordFound = true;
+                break;
+            }
 
-    //    }
-    //    if (y coord greater than 200 and less than 495) {
+            else {
+                coordFound = false;
+            }
+        }
+        else if (*xCoord > 200 && *xCoord < 395) {
+            clickedCell.first = 1;
+            if (*yCoord < 195) {
+                clickedCell.second = 0;
+                coordFound = true;
+                break;
+            }
+            else if (*yCoord > 200 && *yCoord < 395) {
+                clickedCell.second = 1;
+                coordFound = true;
+                break;
+            }
+            else if (*yCoord > 400 && *yCoord < 600) {
+                clickedCell.second = 2;
+                coordFound = true;
+                break;
+            }
 
-    //    }
-    //    if (y coord greater than 500) {
+            else {
+                coordFound = false;
+            }
+        }
+        else if (*xCoord > 400 && *xCoord < 600) {
+            clickedCell.first = 2;
+            if (*yCoord < 195) {
+                clickedCell.second = 0;
+                coordFound = true;
+                break;
+            }
+            else if (*yCoord > 200 && *yCoord < 395) {
+                clickedCell.second = 1;
+                coordFound = true;
+                break;
+            }
+            else if (*yCoord > 400 && *yCoord < 600) {
+                clickedCell.second = 2;
+                coordFound = true;
+                break;
+            }
 
-    //    }
-    //}
+            else {
+                coordFound = false;
+            }
+        }
+    }
 
-    printf("You clicked on cell (%d, %d)\n", 0, 0); // Eventually return a pair of ints
+
+
+
+
+    printf("You clicked on cell (%d, %d)\n", clickedCell.first, clickedCell.second); // Eventually return a pair of ints
+
+    return clickedCell;
 }
 
 
