@@ -278,76 +278,75 @@ std::pair<int, int> detectCellClicked(SDL_Event event) {
     int* yCoord = &mousePosition.second;
     printf("You clicked these coordinates: (%d, %d)\n", *xCoord, *yCoord);
 
-    std::pair<int, int> clickedCell { 0, 0 };
-    bool coordFound = false;
-    while (!coordFound) {
-        if (*xCoord < 195) {
-            clickedCell.first = 0;
-            if (*yCoord < 195) {
-                clickedCell.second = 0;
-                coordFound = true;
-                break;
-            }
-            else if (*yCoord > 200 && *yCoord < 395) {
-                clickedCell.second = 1;
-                coordFound = true;
-                break;
-            }
-            else if (*yCoord > 400 && *yCoord < 600) {
-                clickedCell.second = 2;
-                coordFound = true;
-                break;
-            }
+    std::pair<int, int> clickedCell { -1, -1 }; // An invalid cell will produce an error
 
-            else {
-                coordFound = false;
-            }
+    int cellWidth = SCREEN_WIDTH / 3;
+    int cellHeight = SCREEN_HEIGHT / 3;
+    int borderWidth = (5.0 / initialScreenWidth) * SCREEN_WIDTH; // IF YOU MAKE IT 5 INSTEAD OF 5.0 IT BREAKS
+    int borderHeight = (5.0 / initialScreenHeight) * SCREEN_HEIGHT; // STUPID INTEGER DIVISION RULES! ;)
+    
+    if (*xCoord < (cellWidth - borderWidth)) {
+        clickedCell.first = 0;
+        if (*yCoord < (cellHeight - borderHeight)) {
+            clickedCell.second = 0;
+                
         }
-        else if (*xCoord > 200 && *xCoord < 395) {
-            clickedCell.first = 1;
-            if (*yCoord < 195) {
-                clickedCell.second = 0;
-                coordFound = true;
-                break;
-            }
-            else if (*yCoord > 200 && *yCoord < 395) {
-                clickedCell.second = 1;
-                coordFound = true;
-                break;
-            }
-            else if (*yCoord > 400 && *yCoord < 600) {
-                clickedCell.second = 2;
-                coordFound = true;
-                break;
-            }
-
-            else {
-                coordFound = false;
-            }
+        else if (*yCoord > cellHeight && *yCoord < (cellHeight * 2) - borderHeight) {
+            clickedCell.second = 1;
+               
         }
-        else if (*xCoord > 400 && *xCoord < 600) {
-            clickedCell.first = 2;
-            if (*yCoord < 195) {
-                clickedCell.second = 0;
-                coordFound = true;
-                break;
-            }
-            else if (*yCoord > 200 && *yCoord < 395) {
-                clickedCell.second = 1;
-                coordFound = true;
-                break;
-            }
-            else if (*yCoord > 400 && *yCoord < 600) {
-                clickedCell.second = 2;
-                coordFound = true;
-                break;
-            }
+        else if (*yCoord > (cellHeight * 2 ) && *yCoord < cellHeight * 3) {
+            clickedCell.second = 2;
+                
+        }
 
-            else {
-                coordFound = false;
-            }
+        else {
+                
         }
     }
+    else if (*xCoord > cellWidth && *xCoord < (cellWidth * 2 ) - borderWidth) {
+        clickedCell.first = 1;
+        if (*yCoord < (cellHeight - borderHeight)) {
+            clickedCell.second = 0;
+
+        }
+        else if (*yCoord > cellHeight && *yCoord < (cellHeight * 2) - borderHeight) {
+            clickedCell.second = 1;
+
+        }
+        else if (*yCoord > (cellHeight * 2) && *yCoord < cellHeight * 3) {
+            clickedCell.second = 2;
+
+        }
+
+        else {
+                
+        }
+    }
+    else if (*xCoord > (2 * cellWidth) && *xCoord < (3 * cellWidth)) {
+        clickedCell.first = 2;
+        if (*yCoord < (cellHeight - borderHeight)) {
+            clickedCell.second = 0;
+
+        }
+        else if (*yCoord > cellHeight && *yCoord < (cellHeight * 2) - borderHeight) {
+            clickedCell.second = 1;
+
+        }
+        else if (*yCoord > (cellHeight * 2) && *yCoord < cellHeight * 3) {
+            clickedCell.second = 2;
+
+        }
+
+        else {
+               
+        }
+    }
+    else {
+            
+    }
+
+    
 
 
 
@@ -384,6 +383,8 @@ int main(int argc, char* args[])
             // Player init
             Player playerX('x', gPlayerXTexture);
             Player playerO('o', gPlayerOTexture);
+
+            std::pair< int, int> playedCell = { 0, 0 };
 
             while (!quit) {
                 // Handle events on queue
