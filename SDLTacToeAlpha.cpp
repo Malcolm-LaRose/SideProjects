@@ -274,11 +274,23 @@ std::pair<int,int> getMousePosition(SDL_Event event) {
 void detectCellClicked(SDL_Event event) {
     // Should eventually return iterators for accessing game state array
     std::pair<int, int> mousePosition = getMousePosition(event);
-    printf("You clicked these coordinates: (%d, %d)\n", mousePosition.first, mousePosition.second);
+    int* xCoord = &mousePosition.first; // No need to make a new copy, lets try using a pointer
+    int* yCoord = &mousePosition.second;
+    printf("You clicked these coordinates: (%d, %d)\n", *xCoord, *yCoord);
 
+    //if (x coord less than 195) {
+    //    if (y coord less than 195) {
 
+    //    }
+    //    if (y coord greater than 200 and less than 495) {
 
-    printf("You clicked on cell (%d, %d)\n",0,0);
+    //    }
+    //    if (y coord greater than 500) {
+
+    //    }
+    //}
+
+    printf("You clicked on cell (%d, %d)\n", 0, 0); // Eventually return a pair of ints
 }
 
 
@@ -327,14 +339,15 @@ int main(int argc, char* args[])
                             // Add more window event handling as needed
                         }
                         break;
-                    case SDL_MOUSEBUTTONUP:
+                    case SDL_MOUSEBUTTONDOWN:
                         // Detect where click occured
                         if (e.button.button == SDL_BUTTON_LEFT || e.button.button == SDL_BUTTON_RIGHT) {
+                            // If a click occurs, which cell was clicked?
                             detectCellClicked(e);
-                        }
                         // put player texture in region detected
                         // if click out of bounds, do nothing
                         // 
+                        }
 
                         // Add more event handling as needed
                         break;
