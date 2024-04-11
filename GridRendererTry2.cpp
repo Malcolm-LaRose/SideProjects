@@ -39,23 +39,109 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 
+// My include statements
+#include "color.h"
+
 // STD include statements
 #include <vector>
 
 
+// Note: Cells should never be 'raw', they should only be instantiated inside of a Grid
 class Cell {
 public:
+	// A cell initialized without a state should be off (false) (default)
 	Cell() : state(false), cellSize(10) {}
 
+	// We are allowed to initialize a cell as on if we so choose (or off) (may be useless)
 	Cell(bool st) : state(st), cellSize(10) {}
 
-	// ~Cell() : {};
+	// ~Cell() : {} // Destructor method
+
+
+	void updateCellState(bool st) {
+		// Update a cell's state
+		state = st;
+	}
+
+	bool getCellState() {
+		return state;
+	}
+
+	int getCellSize() { // Sort've redundant, might be better placed in Grid in the future
+		return cellSize;
+	}
 
 private:
-	bool state;
-	int cellSize;
+	bool state; // on = true, off = false
+	int cellSize; // Square cell has equal side lengths
 
 };
+
+
+class Grid {
+public:
+	// We initialize a vector with a number of rows and cols, each position of which gets a Cell which is default constructed
+	Grid(int nRows, int nCols) : rows(nRows), cols(nCols) {
+		gridData.resize(rows, std::vector<Cell>(cols)); 
+	}
+
+	// ~Grid() : {}
+
+	bool getCellStateAt(int row, int col) {
+		Cell& cell = gridData[row][col];
+		return cell.getCellState();
+	}
+
+	void updateCellStateAt(int row, int col, bool newState) { // Want to make an = operator?
+		gridData[row][col].updateCellState(newState);
+	}
+
+	void resetGrid() {
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				updateCellStateAt(row, col, false);
+			}
+
+		}
+
+	}
+
+private:
+	int rows; // Number of rows
+	int cols; // Number of cols
+	std::vector<std::vector<Cell>> gridData; // The actual data
+
+};
+
+
+class GameOfLife {
+public:
+	// Constructing GoL creates a 100x100 grid of cells
+	GameOfLife() : grid(100, 100) {}
+
+	// ~GameOfLife() : {}
+
+	// Logic functions
+	
+		// Get cell state at grid location
+		// Check neighbors
+
+
+	// One Game Step
+		// For each cell
+			// Count neighbors
+				// GoL
+
+
+
+	// Game Loop
+
+
+private:
+	Grid grid;
+
+};
+
 
 
 
