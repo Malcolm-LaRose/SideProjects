@@ -46,23 +46,25 @@
 
 // STD include statements
 #include <vector>
+#include <chrono>
+#include <thread>
 
 
 // Note: Cells should never be 'raw', they should only be instantiated inside of a Grid
 class Cell {
 public:
 	// A cell initialized without a state should be off (false) (default)
-	Cell() : state(false), cellSize(10) {}
+	Cell() : state(false) {}
 
 	// We are allowed to initialize a cell as on if we so choose (or off) (may be useless)
-	Cell(bool st) : state(st), cellSize(10) {}
+	Cell(bool st) : state(st) {}
 
 	// Custom copy constructor
-	Cell(const Cell& other) : state(other.state), cellSize(other.cellSize) {}
+	Cell(const Cell& other) : state(other.state) {}
 
 	// Move constructor
 	Cell(Cell&& other) noexcept
-		: state(std::move(other.state)), cellSize(other.cellSize) {
+		: state(std::move(other.state)) {
 		// After moving the state from 'other', we can leave 'other' in a valid but unspecified state
 	}
 
@@ -80,13 +82,9 @@ public:
 		return state;
 	}
 
-	int getCellSize() { // Sort've redundant, might be better placed in Grid in the future
-		return cellSize;
-	}
-
 private:
 	bool state; // on = true, off = false
-	const int cellSize; // Square cell has equal side lengths
+	
 
 };
 
@@ -94,12 +92,17 @@ private:
 class Grid {
 public:
 	// We initialize a vector with a number of rows and cols, each position of which gets a Cell which is default constructed
-	Grid(int nRows, int nCols) : rows(nRows), cols(nCols), cellSpacing(0) {
+	Grid(int nRows, int nCols) : rows(nRows), cols(nCols), cellSpacing(0), cellSize(10) {
 		gridData.resize(rows, std::vector<Cell>(cols)); 
 	}
 
 	// We can optionally provide a cell spacing
-	Grid(int nRows, int nCols, int cSpace) : rows(nRows), cols(nCols), cellSpacing(cSpace) {
+	Grid(int nRows, int nCols, int cSpace) : rows(nRows), cols(nCols), cellSpacing(cSpace), cellSize(10) {
+		gridData.resize(rows, std::vector<Cell>(cols));
+	}
+
+	// We can also optionally provide a cell size
+	Grid(int nRows, int nCols, int cSpace, int cSize) : rows(nRows), cols(nCols), cellSpacing(cSpace), cellSize(cSize) {
 		gridData.resize(rows, std::vector<Cell>(cols));
 	}
 
@@ -149,6 +152,10 @@ public:
 		return gridData;
 	}
 
+	int getCellSize() {
+		return cellSize;
+	}
+
 
 
 private:
@@ -157,6 +164,7 @@ private:
 	std::vector<std::vector<Cell>> gridData; // The actual data
 
 	const int cellSpacing; // Default 0
+	const int cellSize; // Square cell has equal side lengths
 
 };
 
@@ -192,7 +200,7 @@ public:
 		else
 		{
 			// Set window size based on grid size
-			const int cellSize = grid.getCellAt(0, 0).getCellSize();
+			const int cellSize = grid.getCellSize();
 			const int cellSpacing = grid.getCellSpacing();
 
 			SCREEN_WIDTH = (grid.getCols()) * cellSize + ((grid.getCols() - 1) * cellSpacing);
@@ -235,7 +243,7 @@ public:
 		SDL_RenderClear(renderer);
 
 		const int cellSpacing = grid.getCellSpacing();
-		const int cellSize = grid.getCellAt(0, 0).getCellSize();
+		const int cellSize = grid.getCellSize();
 
 		// Render each cell in the grid
 		for (int row = 0; row < grid.getRows(); row++) {
@@ -297,7 +305,7 @@ public:
 			}
 			else if (event.type == SDL_MOUSEBUTTONDOWN) {
 				// Get cell parameters
-				const int cellSize = grid.getCellAt(0, 0).getCellSize();
+				const int cellSize = grid.getCellSize();
 				const int cellSpacing = grid.getCellSpacing();
 
 				// Get coordinates
@@ -309,6 +317,17 @@ public:
 
 				// Change clicked cell state
 			}
+		}
+	}
+
+	void sleepUntilSpacebar() { // Useful for debugging state
+		while (true) {
+			if (SDL_PollEvent(&event) != 0) {
+				if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
+					break;
+				}
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Adjust the sleep duration as needed
 		}
 	}
 
@@ -325,11 +344,15 @@ private:
 class GameOfLife {
 public:
 	// Constructing GoL creates a 100x100 grid of cells
-	GameOfLife() // Default GoL will be 100x100 cells and have 2px spaces between cells
-		: renderer(nullptr), evHandler(nullptr), grid(100, 100, 2) {
+	GameOfLife() : renderer(nullptr), evHandler(nullptr), grid(100, 100, 2) { // Default GoL will be 100x100 cells and have 2px spaces between cells 
 		renderer = new MySDL_Renderer(grid, nullptr); // Initialize the renderer
-		evHandler = new MySDL_EventHandler(nullptr, grid); // Set up event handling (so we can use its class functions)
+		evHandler = new MySDL_EventHandler(nullptr, grid); // Set up event handling (so we can use its class functions) 
 	} 
+
+	GameOfLife(int rows, int cols, int spacing, int size) : renderer(nullptr), evHandler(nullptr), grid(rows, cols, spacing, size) { // Custom sized and spaced (and cell size!)
+		renderer = new MySDL_Renderer(grid, nullptr); // Initialize the renderer
+		evHandler = new MySDL_EventHandler(nullptr, grid); // Set up event handling (so we can use its class functions) 
+	}
 
 	// Destructor
 	~GameOfLife() {
@@ -359,8 +382,15 @@ public:
 
 	void sleep() {
 		// The time between iterations (for testing, this should be forever)
+		
+		// Sleep forever (a very long time)
+		std::this_thread::sleep_for(std::chrono::minutes(60));
 
+		// Sleep for a reasonable amount of time
+		// std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
+
+
 
 	void start() {
 		// Game loop
@@ -369,7 +399,7 @@ public:
 			// updateGrid(); --> Might happen inside of event handling
 			renderer->renderGrid(); // This can be combined with the following step into one function if desired
 			renderer->presentRender();
-			// sleep();
+			sleep();
 		}
 		renderer->quitSDL();
 	}
