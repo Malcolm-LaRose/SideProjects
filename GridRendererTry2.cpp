@@ -35,6 +35,8 @@
 	// Do I want the cells to know their positions in the grid or do I want them to be position agnositc? --> Position agnostic
 	// In essence, will I be doing game of life logic on the cells or the grid? --> affects whether game logic is in cell or grid --> game of life
 
+// For now, don't worry about resizing the window --> Force it to a certain size based on grid size and cell size
+
 // SDL include statements
 #include <SDL.h>
 #include <SDL_syswm.h>
@@ -73,7 +75,7 @@ public:
 
 private:
 	bool state; // on = true, off = false
-	int cellSize; // Square cell has equal side lengths
+	const int cellSize; // Square cell has equal side lengths
 
 };
 
@@ -92,19 +94,35 @@ public:
 		return cell.getCellState();
 	}
 
+	Cell getCellAt(int row, int col) {
+		return gridData[row][col];
+	}
+
 	void updateCellStateAt(int row, int col, bool newState) { // Want to make an = operator?
 		gridData[row][col].updateCellState(newState);
 	}
 
-	void resetGrid() {
+	void resetGrid() { // Sets every cells state to false
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
 				updateCellStateAt(row, col, false);
 			}
-
 		}
-
 	}
+
+	int getRows() const {
+		return rows;
+	}
+
+	int getCols() const {
+		return cols;
+	}
+
+	std::vector<std::vector<Cell>> getGridData() {
+		return gridData;
+	}
+
+
 
 private:
 	int rows; // Number of rows
@@ -114,37 +132,165 @@ private:
 };
 
 
-class GameOfLife {
+
+
+
+class SDL_Renderer {
 public:
-	// Constructing GoL creates a 100x100 grid of cells
-	GameOfLife() : grid(100, 100) {}
+	SDL_Renderer(Grid& grid, SDL_Window* window) : grid(grid), window(window), renderer(nullptr), SCREEN_WIDTH(0), SCREEN_HEIGHT(0) {
+		initSDL();
+	}
 
-	// ~GameOfLife() : {}
+	// ~SDL_Renderer() : {}
 
-	// Logic functions
-	
-		// Get cell state at grid location
-		// Check neighbors
+	bool initSDL()
+	{
+		// Initialization flag
+		bool success = true;
 
+		// Initialize SDL
+		if (SDL_Init(SDL_INIT_VIDEO) < 0)
+		{
+			printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+			success = false;
+		}
+		else
+		{
+			// Set window size based on grid size
+			SCREEN_WIDTH = grid.getCols() * 10;
+			SCREEN_HEIGHT = grid.getRows() * 10;
 
-	// One Game Step
-		// For each cell
-			// Count neighbors
-				// GoL
+			// Create window
+			window = SDL_CreateWindow("SDL GameOfLife", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+			if (window == NULL)
+			{
+				printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+				success = false;
+			}
+			else
+			{
+				// Create renderer for window
+				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+				if (renderer == NULL)
+				{
+					printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+					success = false;
+				}
 
+			}
+		}
 
+		return success;
+	}
 
-	// Game Loop
+	void renderGrid(Grid& grid) {
+		// Implementation of rendering the grid using SDL
+	}
 
 
 private:
-	Grid grid;
+	Grid& grid;
+	SDL_Window* window;
+	SDL_Renderer* renderer;
+
+	int SCREEN_WIDTH;
+	int SCREEN_HEIGHT;
+
 
 };
 
 
+class SDL_EventHandler {
+public:
+	SDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid) {}
+
+	// ~SDL_EventHandler() : {}
+
+	SDL_Event getEvent() {
+		return event;
+	}
+
+private:
+	SDL_Window* window;
+	Grid& grid;
+	SDL_Event event;
+
+};
 
 
+class GameOfLife {
+public:
+	// Constructing GoL creates a 100x100 grid of cells
+	GameOfLife()
+		: renderer(nullptr), evHandler(nullptr), grid(100, 100) {}
+
+	// Destructor
+	~GameOfLife() {
+		delete renderer;
+		delete evHandler;
+	}
 
 
+	// Logic functions
 
+
+	// Check neighbors
+		// Check cells in all 8 directions around the chosen cell --> edges count as off
+		// Push states to a vector
+		// Count number true
+
+
+	// One Game Step
+		// For each cell
+			// Count neighbors true
+				// GoL
+
+	void start() {
+		createWindow();
+		while (!quit) {
+			// handleEvents();
+			// update();
+			// render();
+			// sleep();
+		}
+	}
+
+	void stop() {
+		quit = true;
+	}
+
+	// Game Loop
+		// Loop over game steps
+	// while not quit
+		// handleEvents, update, render, wait short time (1s), loop
+
+
+private:
+	Grid grid;
+	SDL_Renderer* renderer;
+	SDL_EventHandler* evHandler;
+	bool quit = false;
+
+	void createWindow() {
+		SDL_Window* window = SDL_CreateWindow("SDL GameOfLife", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			grid.getCols() * grid.getCellAt(0,0).getCellSize(),
+			grid.getRows() * grid.getCellAt(0,0).getCellSize(),
+			SDL_WINDOW_SHOWN);
+		if (window == nullptr) {
+			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+			return;
+		}
+
+		renderer = new SDL_Renderer(grid, window);
+		evHandler = new SDL_EventHandler(window, grid);
+	}
+
+};
+
+
+int main(int argc, char* args[]) {
+	GameOfLife game;
+	game.start();
+	return 0;
+
+}
