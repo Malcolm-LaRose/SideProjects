@@ -152,11 +152,11 @@ public:
 
 
 private:
-	int rows; // Number of rows
-	int cols; // Number of cols
+	const int rows; // Number of rows
+	const int cols; // Number of cols
 	std::vector<std::vector<Cell>> gridData; // The actual data
 
-	int cellSpacing; // Default 0
+	const int cellSpacing; // Default 0
 
 };
 
@@ -296,8 +296,17 @@ public:
 				exit(0);
 			}
 			else if (event.type == SDL_MOUSEBUTTONDOWN) {
+				// Get cell parameters
+				const int cellSize = grid.getCellAt(0, 0).getCellSize();
+				const int cellSpacing = grid.getCellSpacing();
+
 				// Get coordinates
+				int mouseX = 0;
+				int mouseY = 0;
 				// Convert coordinates to grid location
+				int col = (mouseX / (cellSize + cellSpacing));
+				int row = (mouseY / (cellSize + cellSpacing));
+
 				// Change clicked cell state
 			}
 		}
