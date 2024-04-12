@@ -157,8 +157,8 @@ public:
 		else
 		{
 			// Set window size based on grid size
-			SCREEN_WIDTH = grid.getCols() * 10;
-			SCREEN_HEIGHT = grid.getRows() * 10;
+			SCREEN_WIDTH = (grid.getCols()) * (grid.getCellAt(0, 0).getCellSize());
+			SCREEN_HEIGHT = (grid.getRows()) * (grid.getCellAt(0, 0).getCellSize());
 
 			// Create window
 			window = SDL_CreateWindow("SDL GameOfLife", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -246,11 +246,11 @@ public:
 				// GoL
 
 	void start() {
-		createWindow();
 		while (!quit) {
 			// handleEvents();
-			// update();
-			// render();
+			// updateGrid();
+			// renderGrid(); // This can be combined with the following step into one function
+			// updateDisplay();
 			// sleep();
 		}
 	}
@@ -270,20 +270,6 @@ private:
 	SDL_Renderer* renderer;
 	SDL_EventHandler* evHandler;
 	bool quit = false;
-
-	void createWindow() {
-		SDL_Window* window = SDL_CreateWindow("SDL GameOfLife", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			grid.getCols() * grid.getCellAt(0,0).getCellSize(),
-			grid.getRows() * grid.getCellAt(0,0).getCellSize(),
-			SDL_WINDOW_SHOWN);
-		if (window == nullptr) {
-			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-			return;
-		}
-
-		renderer = new SDL_Renderer(grid, window);
-		evHandler = new SDL_EventHandler(window, grid);
-	}
 
 };
 
