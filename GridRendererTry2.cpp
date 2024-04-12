@@ -221,11 +221,17 @@ public:
 		return success;
 	}
 
+	void quitSDL() {
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+	};
+
 	void renderGrid() {
 		// Implementation of rendering the grid using SDL
 
 		// Clear screen
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_SetRenderDrawColor(renderer, 1, 1, 1, 255); // Background 
 		SDL_RenderClear(renderer);
 
 		const int cellSpacing = grid.getCellSpacing();
@@ -240,10 +246,10 @@ public:
 				// Determine the color based on the cell state
 				SDL_Color color;
 				if (cellState) {
-					color = { 0, 255, 0, 255 }; // Green for alive cells
+					color = Color::getSDLColor(Color::PHSORNG); // Phosphor orange for alive cells
 				}
 				else {
-					color = { 128, 128, 128, 255 }; // Dark grey for dead cells
+					color = Color::getSDLColor(Color::DRKGRY); // Dark grey for dead cells
 				}
 
 				// Calculate the position and size of the cell with spacing
@@ -256,7 +262,9 @@ public:
 				SDL_RenderFillRect(renderer, &cellRect);
 			}
 		}
+	}
 
+	void presentRender() {
 		// Present the rendered image
 		SDL_RenderPresent(renderer);
 	}
@@ -275,11 +283,11 @@ private:
 };
 
 
-class MySDL_EventHandler {
+class MySDL_EventHandler { // This class is mostly for neater organization, no real logical/semantic purpose here (can hide messy code away from main game logic)
 public:
 	MySDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid), event() {}
 
-	// ~MySDL_EventHandler() : {}
+	~MySDL_EventHandler() {}
 
 	void pollEvent() {
 		while (SDL_PollEvent(&event) != 0) {
@@ -287,17 +295,20 @@ public:
 			if (event.type == SDL_QUIT) {
 				exit(0);
 			}
+			else if (event.type == SDL_MOUSEBUTTONDOWN) {
+				// Get coordinates
+				// Convert coordinates to grid location
+				// Change clicked cell state
+			}
 		}
 	}
 
-	SDL_Event getEvent() {
-		return event;
-	}
-
 private:
-	SDL_Window* window;
-	Grid& grid;
+	SDL_Window* window; // So events can manipulate the window (render is aware of window, should be okay)
+	Grid& grid; // So this class can do logic involving grid/cell parameters
 	SDL_Event event;
+
+
 
 };
 
@@ -314,6 +325,7 @@ public:
 	// Destructor
 	~GameOfLife() {
 		delete renderer;
+		delete evHandler;
 	}
 
 	// Disable copy constructor
@@ -329,31 +341,33 @@ public:
 		// Check cells in all 8 directions around the chosen cell --> edges count as off
 		// Push states to a vector
 		// Count number true
+		// A neat test would be changing the state of the 8 cells surrounding a cell clicked
 
 
-	// One Game Step
-		// For each cell
-			// Count neighbors true
-				// GoL
+	// Utility Functions
+		
+
+
+	void sleep() {
+		// The time between iterations (for testing, this should be forever)
+
+	}
 
 	void start() {
+		// Game loop
 		while (!quit) {
 			evHandler->pollEvent();
-			// updateGrid();
-			renderer->renderGrid(); // This can be combined with the following step into one function
-			// updateDisplay();
+			// updateGrid(); --> Might happen inside of event handling
+			renderer->renderGrid(); // This can be combined with the following step into one function if desired
+			renderer->presentRender();
 			// sleep();
 		}
+		renderer->quitSDL();
 	}
 
 	void stop() {
 		quit = true;
 	}
-
-	// Game Loop
-		// Loop over game steps
-	// while not quit
-		// handleEvents, update, render, wait short time (1s), loop
 
 
 private:
