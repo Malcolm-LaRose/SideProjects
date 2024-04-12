@@ -60,8 +60,12 @@ public:
 	// Custom copy constructor
 	Cell(const Cell& other) : state(other.state), cellSize(other.cellSize) {}
 
-	// Disable move constructor
-	Cell(Cell&&) = delete;
+	// Move constructor
+	Cell(Cell&& other) noexcept
+		: state(std::move(other.state)), cellSize(other.cellSize) {
+		// After moving the state from 'other', we can leave 'other' in a valid but unspecified state
+	}
+
 
 	// Destructor
 	~Cell() {}
@@ -94,6 +98,7 @@ public:
 		gridData.resize(rows, std::vector<Cell>(cols)); 
 	}
 
+	// We can optionally provide a cell spacing
 	Grid(int nRows, int nCols, int cSpace) : rows(nRows), cols(nCols), cellSpacing(cSpace) {
 		gridData.resize(rows, std::vector<Cell>(cols));
 	}
@@ -111,7 +116,7 @@ public:
 		return cell.getCellState();
 	}
 
-	Cell& getCellAt(int row, int col) {
+	Cell& getCellAt(int row, int col) { // Trying passing by ref
 		Cell& cell = gridData[row][col];
 		return cell;
 	}
@@ -276,7 +281,14 @@ public:
 
 	// ~MySDL_EventHandler() : {}
 
-
+	void pollEvent() {
+		while (SDL_PollEvent(&event) != 0) {
+			// If user quits the window, set quit flag to true
+			if (event.type == SDL_QUIT) {
+				exit(0);
+			}
+		}
+	}
 
 	SDL_Event getEvent() {
 		return event;
@@ -296,7 +308,7 @@ public:
 	GameOfLife() // Default GoL will be 100x100 cells and have 2px spaces between cells
 		: renderer(nullptr), evHandler(nullptr), grid(100, 100, 2) {
 		renderer = new MySDL_Renderer(grid, nullptr); // Initialize the renderer
-		// evHandler = new MySDL_EventHandler(); // Set up event handling (so we can use its class functions)
+		evHandler = new MySDL_EventHandler(nullptr, grid); // Set up event handling (so we can use its class functions)
 	} 
 
 	// Destructor
@@ -326,7 +338,7 @@ public:
 
 	void start() {
 		while (!quit) {
-			// handleEvents();
+			evHandler->pollEvent();
 			// updateGrid();
 			renderer->renderGrid(); // This can be combined with the following step into one function
 			// updateDisplay();
