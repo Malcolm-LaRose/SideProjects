@@ -83,8 +83,12 @@ private:
 class Grid {
 public:
 	// We initialize a vector with a number of rows and cols, each position of which gets a Cell which is default constructed
-	Grid(int nRows, int nCols) : rows(nRows), cols(nCols) {
+	Grid(int nRows, int nCols) : rows(nRows), cols(nCols), cellSpacing(0) {
 		gridData.resize(rows, std::vector<Cell>(cols)); 
+	}
+
+	Grid(int nRows, int nCols, int cSpace) : rows(nRows), cols(nCols), cellSpacing(cSpace) {
+		gridData.resize(rows, std::vector<Cell>(cols));
 	}
 
 	// ~Grid() : {}
@@ -118,6 +122,10 @@ public:
 		return cols;
 	}
 
+	int getCellSpacing() const {
+		return cellSpacing;
+	}
+
 	std::vector<std::vector<Cell>> getGridData() {
 		return gridData;
 	}
@@ -129,19 +137,21 @@ private:
 	int cols; // Number of cols
 	std::vector<std::vector<Cell>> gridData; // The actual data
 
+	int cellSpacing; // Default 0
+
 };
 
 
 
 
 
-class SDL_Renderer {
+class MySDL_Renderer {
 public:
-	SDL_Renderer(Grid& grid, SDL_Window* window) : grid(grid), window(window), renderer(nullptr), SCREEN_WIDTH(0), SCREEN_HEIGHT(0) {
+	MySDL_Renderer(Grid& grid, SDL_Window* window) : grid(grid), window(nullptr), renderer(nullptr), SCREEN_WIDTH(0), SCREEN_HEIGHT(0) {
 		initSDL();
 	}
 
-	// ~SDL_Renderer() : {}
+	// ~MySDL_Renderer() : {}
 
 	bool initSDL()
 	{
@@ -157,8 +167,11 @@ public:
 		else
 		{
 			// Set window size based on grid size
-			SCREEN_WIDTH = (grid.getCols()) * (grid.getCellAt(0, 0).getCellSize());
-			SCREEN_HEIGHT = (grid.getRows()) * (grid.getCellAt(0, 0).getCellSize());
+			const int cellSize = grid.getCellAt(0, 0).getCellSize();
+			const int cellSpacing = grid.getCellSpacing();
+
+			SCREEN_WIDTH = (grid.getCols()) * cellSize + ((grid.getCols() - 1) * cellSpacing);
+			SCREEN_HEIGHT = (grid.getRows()) * cellSize + ((grid.getRows() - 1) * cellSpacing);
 
 			// Create window
 			window = SDL_CreateWindow("SDL GameOfLife", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -183,9 +196,46 @@ public:
 		return success;
 	}
 
-	void renderGrid(Grid& grid) {
+	void renderGrid() {
 		// Implementation of rendering the grid using SDL
+
+		// Clear screen
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_RenderClear(renderer);
+
+		const int cellSpacing = grid.getCellSpacing();
+		const int cellSize = grid.getCellAt(0, 0).getCellSize();
+
+		// Render each cell in the grid
+		for (int row = 0; row < grid.getRows(); row++) {
+			for (int col = 0; col < grid.getCols(); col++) {
+				// Get the state of the cell
+				bool cellState = grid.getCellStateAt(row, col);
+
+				// Determine the color based on the cell state
+				SDL_Color color;
+				if (cellState) {
+					color = { 0, 255, 0, 255 }; // Green for alive cells
+				}
+				else {
+					color = { 128, 128, 128, 255 }; // Dark grey for dead cells
+				}
+
+				// Calculate the position and size of the cell with spacing
+				int x = col * (cellSize + cellSpacing);
+				int y = row * (cellSize + cellSpacing);
+				SDL_Rect cellRect = { x, y, cellSize, cellSize };
+
+				// Render the cell
+				SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+				SDL_RenderFillRect(renderer, &cellRect);
+			}
+		}
+
+		// Present the rendered image
+		SDL_RenderPresent(renderer);
 	}
+
 
 
 private:
@@ -202,7 +252,7 @@ private:
 
 class SDL_EventHandler {
 public:
-	SDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid) {}
+	SDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid), event() {}
 
 	// ~SDL_EventHandler() : {}
 
@@ -221,13 +271,13 @@ private:
 class GameOfLife {
 public:
 	// Constructing GoL creates a 100x100 grid of cells
-	GameOfLife()
-		: renderer(nullptr), evHandler(nullptr), grid(100, 100) {}
+	GameOfLife() // Default GoL will be 100x100 cells and have 2px spaces between cells
+		: renderer(nullptr), evHandler(nullptr), grid(100, 100, 2) {
+		renderer = new MySDL_Renderer(grid, nullptr); // Initialize the renderer
+	} 
 
 	// Destructor
 	~GameOfLife() {
-		delete renderer;
-		delete evHandler;
 	}
 
 
@@ -249,7 +299,7 @@ public:
 		while (!quit) {
 			// handleEvents();
 			// updateGrid();
-			// renderGrid(); // This can be combined with the following step into one function
+			renderer->renderGrid(); // This can be combined with the following step into one function
 			// updateDisplay();
 			// sleep();
 		}
@@ -267,7 +317,7 @@ public:
 
 private:
 	Grid grid;
-	SDL_Renderer* renderer;
+	MySDL_Renderer* renderer;
 	SDL_EventHandler* evHandler;
 	bool quit = false;
 
