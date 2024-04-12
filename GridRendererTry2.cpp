@@ -57,7 +57,14 @@ public:
 	// We are allowed to initialize a cell as on if we so choose (or off) (may be useless)
 	Cell(bool st) : state(st), cellSize(10) {}
 
-	// ~Cell() : {} // Destructor method
+	// Custom copy constructor
+	Cell(const Cell& other) : state(other.state), cellSize(other.cellSize) {}
+
+	// Disable move constructor
+	Cell(Cell&&) = delete;
+
+	// Destructor
+	~Cell() {}
 
 
 	void updateCellState(bool st) {
@@ -93,13 +100,20 @@ public:
 
 	// ~Grid() : {}
 
+	 // Disable copy constructor
+	Grid(const Grid&) = delete;
+
+	// Disable move constructor
+	Grid(Grid&&) = delete;
+
 	bool getCellStateAt(int row, int col) {
 		Cell& cell = gridData[row][col];
 		return cell.getCellState();
 	}
 
-	Cell getCellAt(int row, int col) {
-		return gridData[row][col];
+	Cell& getCellAt(int row, int col) {
+		Cell& cell = gridData[row][col];
+		return cell;
 	}
 
 	void updateCellStateAt(int row, int col, bool newState) { // Want to make an = operator?
@@ -147,11 +161,17 @@ private:
 
 class MySDL_Renderer {
 public:
-	MySDL_Renderer(Grid& grid, SDL_Window* window) : grid(grid), window(nullptr), renderer(nullptr), SCREEN_WIDTH(0), SCREEN_HEIGHT(0) {
+	MySDL_Renderer(Grid& grid, SDL_Window* window) : grid(grid), window(window), renderer(nullptr), SCREEN_WIDTH(0), SCREEN_HEIGHT(0) {
 		initSDL();
 	}
 
 	// ~MySDL_Renderer() : {}
+
+	// Disable copy constructor
+	MySDL_Renderer(const MySDL_Renderer&) = delete;
+
+	// Disable move constructor
+	MySDL_Renderer(MySDL_Renderer&&) = delete;
 
 	bool initSDL()
 	{
@@ -250,11 +270,13 @@ private:
 };
 
 
-class SDL_EventHandler {
+class MySDL_EventHandler {
 public:
-	SDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid), event() {}
+	MySDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid), event() {}
 
-	// ~SDL_EventHandler() : {}
+	// ~MySDL_EventHandler() : {}
+
+
 
 	SDL_Event getEvent() {
 		return event;
@@ -274,12 +296,19 @@ public:
 	GameOfLife() // Default GoL will be 100x100 cells and have 2px spaces between cells
 		: renderer(nullptr), evHandler(nullptr), grid(100, 100, 2) {
 		renderer = new MySDL_Renderer(grid, nullptr); // Initialize the renderer
+		// evHandler = new MySDL_EventHandler(); // Set up event handling (so we can use its class functions)
 	} 
 
 	// Destructor
 	~GameOfLife() {
+		delete renderer;
 	}
 
+	// Disable copy constructor
+	GameOfLife(const GameOfLife&) = delete;
+
+	// Disable move constructor
+	GameOfLife(GameOfLife&&) = delete;
 
 	// Logic functions
 
@@ -318,7 +347,7 @@ public:
 private:
 	Grid grid;
 	MySDL_Renderer* renderer;
-	SDL_EventHandler* evHandler;
+	MySDL_EventHandler* evHandler;
 	bool quit = false;
 
 };
@@ -328,5 +357,4 @@ int main(int argc, char* args[]) {
 	GameOfLife game;
 	game.start();
 	return 0;
-
 }
