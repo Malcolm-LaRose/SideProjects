@@ -2,9 +2,9 @@
 #include "color.h"
 
 // Usage
-// std::vector<int> white = Color::getColorVector(Color::WHITE);
+// std::vector<int> white = Color::getColorVector(WHITE);
 
-std::vector<int> Color::getColorVector(Color::NamedColor namedColor) {
+std::vector<int> Color::getColorVector(NamedColor namedColor) {
     switch (namedColor) {
     case WHITE:
         return { 255, 255, 255, 255 };
