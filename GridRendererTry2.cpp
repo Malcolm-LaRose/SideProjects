@@ -45,6 +45,7 @@
 #include "color.h"
 
 // STD include statements
+#include <stdio.h>
 #include <vector>
 #include <chrono>
 #include <thread>
@@ -76,6 +77,10 @@ public:
 	void updateCellState(bool st) {
 		// Update a cell's state
 		state = st;
+	}
+
+	void flipCellState() {
+		state = !state;
 	}
 
 	bool getCellState() {
@@ -124,8 +129,12 @@ public:
 		return cell;
 	}
 
-	void updateCellStateAt(int row, int col, bool newState) { // Want to make an = operator?
+	void updateCellStateAt(int row, int col, bool newState) { // Want to make an = operator? --> Might have to be in the cell class
 		gridData[row][col].updateCellState(newState);
+	}
+
+	void flipCellStateAt(int row, int col) {
+		gridData[row][col].flipCellState();
 	}
 
 	void resetGrid() { // Sets every cells state to false
@@ -301,22 +310,29 @@ public:
 		while (SDL_PollEvent(&event) != 0) {
 			// If user quits the window, set quit flag to true
 			if (event.type == SDL_QUIT) {
+				// Might not be gracefully shutting down...
 				exit(0);
 			}
+
 			else if (event.type == SDL_MOUSEBUTTONDOWN) {
 				// Get cell parameters
-				const int cellSize = grid.getCellSize();
-				const int cellSpacing = grid.getCellSpacing();
+				const int& cellSize = grid.getCellSize();
+				const int& cellSpacing = grid.getCellSpacing();
 
 				// Get coordinates
-				int mouseX = 0;
-				int mouseY = 0;
+				std::pair<int, int> mousePosition = getMousePosition();
+
+				int& mouseX = mousePosition.first;
+				int& mouseY = mousePosition.second;
 				// Convert coordinates to grid location
 				int col = (mouseX / (cellSize + cellSpacing));
 				int row = (mouseY / (cellSize + cellSpacing));
+				// printf("Row: %d\nCol: %d\n", row, col); // Debug statement
 
 				// Change clicked cell state
+				grid.flipCellStateAt(row, col);
 			}
+
 		}
 	}
 
@@ -329,6 +345,10 @@ public:
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Adjust the sleep duration as needed
 		}
+	}
+
+	std::pair<int, int> getMousePosition() {
+		return { event.motion.x, event.motion.y };
 	}
 
 private:
@@ -356,6 +376,7 @@ public:
 
 	// Destructor
 	~GameOfLife() {
+		quit = true;
 		delete renderer;
 		delete evHandler;
 	}
@@ -368,11 +389,43 @@ public:
 
 	// Logic functions
 
+	bool isInBounds(int row, int col) { // Checks if an array position is in bounds (for using GoL rules)
+		return (row >= 0 && row < grid.getRows() && col >= 0 && col < grid.getCols());
+	}
+
+	int checkMooreNeighborhoodFor(int row, int col, bool state) {
+		// Check cells around given location for the given state
+		// Return number found
+		// If nearby cell is not valid (off edge) treat as dead
+		return 0;
+	}
+
+	void gameOfLife() {
+		// For every cell on the grid
+		for (int row = 0; row < grid.getRows(); row++) {
+			for (int col = 0; col < grid.getCols(); col++) {
+				// Check neighborhood
+				int numAlive = checkMooreNeighborhoodFor(row, col, true);
+				int numDead = 8 - numAlive;
+				// Count living (true) and count dead (false)
+					// Treat 'off-grid' cells as dead (false)
+				// Check current cell state
+					// If living and has > 3 living neighbors -> death (change state)
+					// If living and has 2 or 3 living neighbors -> no change (life)
+					// If living and has < 2 living neighbors --> death (change state)
+					// If dead and has 3 living neighbors --> Life (change state)
+			}
+		}
+	}
+
+
+
 
 	// Check neighbors
 		// Check cells in all 8 directions around the chosen cell --> edges count as off
 		// Push states to a vector
 		// Count number true
+		// Treat edges as false state cells (death)
 		// A neat test would be changing the state of the 8 cells surrounding a cell clicked
 
 
@@ -396,10 +449,10 @@ public:
 		// Game loop
 		while (!quit) {
 			evHandler->pollEvent();
-			// updateGrid(); --> Might happen inside of event handling
+			// updateGridGoL(); --> Might happen inside of event handling
 			renderer->renderGrid(); // This can be combined with the following step into one function if desired
 			renderer->presentRender();
-			sleep();
+			// sleep();
 		}
 		renderer->quitSDL();
 	}
@@ -419,7 +472,7 @@ private:
 
 
 int main(int argc, char* args[]) {
-	GameOfLife game;
+	GameOfLife game(100, 100, 2, 12);
 	game.start();
 	return 0;
 }
