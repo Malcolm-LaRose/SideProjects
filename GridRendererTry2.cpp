@@ -300,11 +300,83 @@ private:
 };
 
 
+
 class MySDL_EventHandler { // This class is mostly for neater organization, no real logical/semantic purpose here (can hide messy code away from main game logic)
 public:
 	MySDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid), event() {}
 
 	~MySDL_EventHandler() {}
+
+	bool isInBounds(int row, int col) { // Checks if an array position is in bounds (for using GoL rules)
+		return (row >= 0 && row < grid.getRows() && col >= 0 && col < grid.getCols());
+	}
+
+	int checkMooreNeighborhoodFor(int row, int col, bool state) {
+		// Check cells around given location for the given state
+		// Return number found
+		// If nearby cell is not valid (off edge) treat as dead
+		int count = 0;
+		int rows = grid.getRows();
+		int cols = grid.getCols();
+
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				if (i == 0 && j == 0) continue;
+				if ((isInBounds(row + i, col + j)) && (grid.getCellStateAt(row + i, col + j) == state)) {
+					count++;
+				}
+			}
+		}
+
+		return count;
+	}
+
+	void gameOfLife() {
+		// Create a temporary grid to store the updated cell states
+		Grid updatedGrid(grid.getRows(), grid.getCols(), grid.getCellSpacing(), grid.getCellSize());
+
+
+		// For every cell on the grid
+		for (int row = 0; row < grid.getRows(); row++) {
+			for (int col = 0; col < grid.getCols(); col++) {
+				// Check neighborhood for living cells
+				int numAlive = checkMooreNeighborhoodFor(row, col, true);
+
+				// Get the current state of the cell
+				bool currentCellState = grid.getCellStateAt(row, col);
+
+				// Apply Conway's Game of Life rules
+				if (currentCellState) {
+					// Any live cell with fewer than two live neighbors dies, as if by underpopulation
+					// Any live cell with two or three live neighbors lives on to the next generation
+					// Any live cell with more than three live neighbors dies, as if by overpopulation
+					if (numAlive < 2 || numAlive > 3) {
+						// Cell dies in the next generation
+						updatedGrid.updateCellStateAt(row, col, false);
+					}
+					else {
+						// Cell survives to the next generation
+						updatedGrid.updateCellStateAt(row, col, true);
+					}
+				}
+				else {
+					// Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction
+					if (numAlive == 3) {
+						// Cell is born in the next generation
+						updatedGrid.updateCellStateAt(row, col, true);
+					}
+				}
+			}
+		}
+
+		// Update the original grid with the updated cell states
+		for (int row = 0; row < grid.getRows(); row++) {
+			for (int col = 0; col < grid.getCols(); col++) {
+				bool nextState = updatedGrid.getCellStateAt(row, col);
+				grid.updateCellStateAt(row, col, nextState);
+			}
+		}
+	}
 
 	void pollEvent() {
 		while (SDL_PollEvent(&event) != 0) {
@@ -333,19 +405,13 @@ public:
 				grid.flipCellStateAt(row, col);
 			}
 
+			else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
+				gameOfLife();
+			}
+
 		}
 	}
 
-	void sleepUntilSpacebar() { // Useful for debugging state
-		while (true) {
-			if (SDL_PollEvent(&event) != 0) {
-				if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
-					break;
-				}
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Adjust the sleep duration as needed
-		}
-	}
 
 	std::pair<int, int> getMousePosition() {
 		return { event.motion.x, event.motion.y };
@@ -389,45 +455,7 @@ public:
 
 	// Logic functions
 
-	bool isInBounds(int row, int col) { // Checks if an array position is in bounds (for using GoL rules)
-		return (row >= 0 && row < grid.getRows() && col >= 0 && col < grid.getCols());
-	}
-
-	int checkMooreNeighborhoodFor(int row, int col, bool state) {
-		// Check cells around given location for the given state
-		// Return number found
-		// If nearby cell is not valid (off edge) treat as dead
-		return 0;
-	}
-
-	void gameOfLife() {
-		// For every cell on the grid
-		for (int row = 0; row < grid.getRows(); row++) {
-			for (int col = 0; col < grid.getCols(); col++) {
-				// Check neighborhood
-				int numAlive = checkMooreNeighborhoodFor(row, col, true);
-				int numDead = 8 - numAlive;
-				// Count living (true) and count dead (false)
-					// Treat 'off-grid' cells as dead (false)
-				// Check current cell state
-					// If living and has > 3 living neighbors -> death (change state)
-					// If living and has 2 or 3 living neighbors -> no change (life)
-					// If living and has < 2 living neighbors --> death (change state)
-					// If dead and has 3 living neighbors --> Life (change state)
-			}
-		}
-	}
-
-
-
-
-	// Check neighbors
-		// Check cells in all 8 directions around the chosen cell --> edges count as off
-		// Push states to a vector
-		// Count number true
-		// Treat edges as false state cells (death)
-		// A neat test would be changing the state of the 8 cells surrounding a cell clicked
-
+	
 
 	// Utility Functions
 		
@@ -472,7 +500,7 @@ private:
 
 
 int main(int argc, char* args[]) {
-	GameOfLife game(100, 100, 2, 12);
+	GameOfLife game(100, 100, 2, 10);
 	game.start();
 	return 0;
 }
