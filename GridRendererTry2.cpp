@@ -51,6 +51,7 @@
 #include <thread>
 
 
+
 // Note: Cells should never be 'raw', they should only be instantiated inside of a Grid
 class Cell {
 public:
@@ -97,17 +98,17 @@ private:
 class Grid {
 public:
 	// We initialize a vector with a number of rows and cols, each position of which gets a Cell which is default constructed
-	Grid(int nRows, int nCols) : rows(nRows), cols(nCols), cellSpacing(0), cellSize(10) {
+	Grid(int nRows, int nCols) : rows(nRows), cols(nCols), cellSpacing(0), cellSize(10), iterNum(0) {
 		gridData.resize(rows, std::vector<Cell>(cols)); 
 	}
 
 	// We can optionally provide a cell spacing
-	Grid(int nRows, int nCols, int cSpace) : rows(nRows), cols(nCols), cellSpacing(cSpace), cellSize(10) {
+	Grid(int nRows, int nCols, int cSpace) : rows(nRows), cols(nCols), cellSpacing(cSpace), cellSize(10), iterNum(0) {
 		gridData.resize(rows, std::vector<Cell>(cols));
 	}
 
 	// We can also optionally provide a cell size
-	Grid(int nRows, int nCols, int cSpace, int cSize) : rows(nRows), cols(nCols), cellSpacing(cSpace), cellSize(cSize) {
+	Grid(int nRows, int nCols, int cSpace, int cSize) : rows(nRows), cols(nCols), cellSpacing(cSpace), cellSize(cSize), iterNum(0) {
 		gridData.resize(rows, std::vector<Cell>(cols));
 	}
 
@@ -165,6 +166,14 @@ public:
 		return cellSize;
 	}
 
+	void incIterNum() {
+		iterNum += 1;
+	}
+
+	int getIterNum() {
+		return iterNum;
+	}
+
 
 
 private:
@@ -174,6 +183,8 @@ private:
 
 	const int cellSpacing; // Default 0
 	const int cellSize; // Square cell has equal side lengths
+
+	int iterNum;
 
 };
 
@@ -288,6 +299,8 @@ public:
 
 
 
+
+
 private:
 	Grid& grid;
 	SDL_Window* window;
@@ -300,18 +313,17 @@ private:
 };
 
 
-
-class MySDL_EventHandler { // This class is mostly for neater organization, no real logical/semantic purpose here (can hide messy code away from main game logic)
+class GOLFuncs {
 public:
-	MySDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid), event() {}
+	GOLFuncs(Grid& grid) : grid(grid) {}
 
-	~MySDL_EventHandler() {}
+	// ~GOLFuncs() : {}
 
-	bool isInBounds(int row, int col) { // Checks if an array position is in bounds (for using GoL rules)
+	static bool isInBounds(int row, int col, Grid& grid) { // Checks if an array position is in bounds (for using GoL rules)
 		return (row >= 0 && row < grid.getRows() && col >= 0 && col < grid.getCols());
 	}
 
-	int checkMooreNeighborhoodFor(int row, int col, bool state) {
+	static int checkMooreNeighborhoodFor(int row, int col, bool state, Grid& grid) {
 		// Check cells around given location for the given state
 		// Return number found
 		// If nearby cell is not valid (off edge) treat as dead
@@ -322,7 +334,7 @@ public:
 		for (int i = -1; i <= 1; i++) {
 			for (int j = -1; j <= 1; j++) {
 				if (i == 0 && j == 0) continue;
-				if ((isInBounds(row + i, col + j)) && (grid.getCellStateAt(row + i, col + j) == state)) {
+				if ((isInBounds(row + i, col + j, grid)) && (grid.getCellStateAt(row + i, col + j) == state)) {
 					count++;
 				}
 			}
@@ -331,7 +343,19 @@ public:
 		return count;
 	}
 
-	void gameOfLife() {
+	static void printIterNum(Grid& grid) {
+		int num = grid.getIterNum();
+		int prevINum = -1;
+
+		if (num != prevINum) {
+
+			system("cls");
+
+			printf("Iteration Number: %d", num);
+		}
+	}
+
+	static void gameOfLife(Grid& grid) {
 		// Create a temporary grid to store the updated cell states
 		Grid updatedGrid(grid.getRows(), grid.getCols(), grid.getCellSpacing(), grid.getCellSize());
 
@@ -340,7 +364,7 @@ public:
 		for (int row = 0; row < grid.getRows(); row++) {
 			for (int col = 0; col < grid.getCols(); col++) {
 				// Check neighborhood for living cells
-				int numAlive = checkMooreNeighborhoodFor(row, col, true);
+				int numAlive = checkMooreNeighborhoodFor(row, col, true, grid);
 
 				// Get the current state of the cell
 				bool currentCellState = grid.getCellStateAt(row, col);
@@ -376,7 +400,26 @@ public:
 				grid.updateCellStateAt(row, col, nextState);
 			}
 		}
+		grid.incIterNum();
 	}
+
+private:
+	Grid& grid;
+
+};
+
+
+
+
+class MySDL_EventHandler { // This class is mostly for neater organization, no real logical/semantic purpose here (can hide messy code away from main game logic)
+public:
+	MySDL_EventHandler(SDL_Window* window, Grid& grid) : window(window), grid(grid), event() {
+		
+	}
+
+	~MySDL_EventHandler() {}
+
+	
 
 	void pollEvent() {
 		while (SDL_PollEvent(&event) != 0) {
@@ -406,7 +449,11 @@ public:
 			}
 
 			else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
-				gameOfLife();
+				GOLFuncs::gameOfLife(grid);
+			}
+
+			else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_r) {
+				grid.resetGrid();
 			}
 
 		}
@@ -453,14 +500,7 @@ public:
 	// Disable move constructor
 	GameOfLife(GameOfLife&&) = delete;
 
-	// Logic functions
-
-	
-
 	// Utility Functions
-		
-
-
 	void sleep() {
 		// The time between iterations (for testing, this should be forever)
 		
@@ -476,10 +516,14 @@ public:
 	void start() {
 		// Game loop
 		while (!quit) {
+			
 			evHandler->pollEvent();
 			// updateGridGoL(); --> Might happen inside of event handling
 			renderer->renderGrid(); // This can be combined with the following step into one function if desired
 			renderer->presentRender();
+
+			GOLFuncs::printIterNum(grid);
+
 			// sleep();
 		}
 		renderer->quitSDL();
@@ -500,7 +544,7 @@ private:
 
 
 int main(int argc, char* args[]) {
-	GameOfLife game(100, 100, 2, 10);
+	GameOfLife game(100, 100, 2, 12);
 	game.start();
 	return 0;
 }
