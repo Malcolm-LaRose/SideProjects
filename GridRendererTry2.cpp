@@ -416,11 +416,12 @@ public:
 			}
 		}
 		grid.incIterNum();
+		printIterNum(grid);
 
 		// Check if the grid state remains unchanged
-		if (!gridChanged) {
+		/*if (!gridChanged) {
 			printf("Huzzah! The grid state remains unchanged.\n");
-		}
+		}*/
 	}
 
 private:
@@ -520,37 +521,11 @@ public:
 	// Disable move constructor
 	GameOfLife(GameOfLife&&) = delete;
 
-	// Utility Functions
-	void sleep() {
-		// The time between iterations (for testing, this should be forever)
-		
-		// Sleep forever (a very long time)
-		std::this_thread::sleep_for(std::chrono::minutes(60));
-
-		// Sleep for a reasonable amount of time
-		// std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
-
-	bool gridStateChanged(std::vector<std::vector<Cell>> prevState) { // Not working?
-
-		std::vector<std::vector<Cell>> initState = grid.getGridData();
-
-		for (int i = 0; i < grid.getRows(); i++) {
-			for (int j = 0; j < grid.getCols(); j++) {
-				if (initState[i][j] != prevState[i][j]) {
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
-
-
 	void start() {
 
 		std::vector<std::vector<Cell>> prevState = grid.getGridData(); // Store grid state to not render unless necessary
+
+		GOLFuncs::printIterNum(grid);
 
 		// Game loop
 		while (!quit) {
