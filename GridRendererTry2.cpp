@@ -74,6 +74,14 @@ public:
 	// Destructor
 	~Cell() {}
 
+	bool operator==(const Cell& other) const {
+		return state == other.state;
+	}
+
+	bool operator!=(const Cell& other) const {
+		return state != other.state;
+	}
+
 
 	void updateCellState(bool st) {
 		// Update a cell's state
@@ -120,14 +128,17 @@ public:
 	// Disable move constructor
 	Grid(Grid&&) = delete;
 
+	Cell& operator()(int row, int col) { // Allows us to use things like grid(2,3).flipCellState --> To be refined!
+		return gridData[row][col]; // replaces getCellAt
+	}
+
+	bool operator==(Grid& other) {
+		return this->gridData == other.gridData;
+	}
+
 	bool getCellStateAt(int row, int col) {
 		Cell& cell = gridData[row][col];
 		return cell.getCellState();
-	}
-
-	Cell& getCellAt(int row, int col) { // Trying passing by ref
-		Cell& cell = gridData[row][col];
-		return cell;
 	}
 
 	void updateCellStateAt(int row, int col, bool newState) { // Want to make an = operator? --> Might have to be in the cell class
@@ -359,6 +370,8 @@ public:
 		// Create a temporary grid to store the updated cell states
 		Grid updatedGrid(grid.getRows(), grid.getCols(), grid.getCellSpacing(), grid.getCellSize());
 
+		// Flag to track if any cell state changes occur during the iteration
+		bool gridChanged = false;
 
 		// For every cell on the grid
 		for (int row = 0; row < grid.getRows(); row++) {
@@ -377,6 +390,7 @@ public:
 					if (numAlive < 2 || numAlive > 3) {
 						// Cell dies in the next generation
 						updatedGrid.updateCellStateAt(row, col, false);
+						if (!gridChanged) gridChanged = true; // Set flag if cell state changes
 					}
 					else {
 						// Cell survives to the next generation
@@ -388,6 +402,7 @@ public:
 					if (numAlive == 3) {
 						// Cell is born in the next generation
 						updatedGrid.updateCellStateAt(row, col, true);
+						if (!gridChanged) gridChanged = true; // Set flag if cell state changes
 					}
 				}
 			}
@@ -401,6 +416,11 @@ public:
 			}
 		}
 		grid.incIterNum();
+
+		// Check if the grid state remains unchanged
+		if (!gridChanged) {
+			printf("Huzzah! The grid state remains unchanged.\n");
+		}
 	}
 
 private:
@@ -511,18 +531,38 @@ public:
 		// std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
+	bool gridStateChanged(std::vector<std::vector<Cell>> prevState) { // Not working?
+
+		std::vector<std::vector<Cell>> initState = grid.getGridData();
+
+		for (int i = 0; i < grid.getRows(); i++) {
+			for (int j = 0; j < grid.getCols(); j++) {
+				if (initState[i][j] != prevState[i][j]) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 
 
 	void start() {
+
+		std::vector<std::vector<Cell>> prevState = grid.getGridData(); // Store grid state to not render unless necessary
+
 		// Game loop
 		while (!quit) {
 			
 			evHandler->pollEvent();
-			// updateGridGoL(); --> Might happen inside of event handling
+
+			 
 			renderer->renderGrid(); // This can be combined with the following step into one function if desired
 			renderer->presentRender();
+			prevState = grid.getGridData();
+			
 
-			GOLFuncs::printIterNum(grid);
 
 			// sleep();
 		}
