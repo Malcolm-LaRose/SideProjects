@@ -418,10 +418,10 @@ public:
 		grid.incIterNum();
 		printIterNum(grid);
 
-		// Check if the grid state remains unchanged
-		/*if (!gridChanged) {
-			printf("Huzzah! The grid state remains unchanged.\n");
-		}*/
+		// check if the grid state remains unchanged
+		if (!gridChanged) {
+		
+		}
 	}
 
 private:
@@ -527,17 +527,23 @@ public:
 
 		GOLFuncs::printIterNum(grid);
 
+		renderer->renderGrid(); // This can be combined with the following step into one function if desired
+		renderer->presentRender();
+
 		// Game loop
 		while (!quit) {
 			
 			evHandler->pollEvent();
 
-			 
-			renderer->renderGrid(); // This can be combined with the following step into one function if desired
-			renderer->presentRender();
-			prevState = grid.getGridData();
-			
+			if (prevState != grid.getGridData()) {
+				renderer->renderGrid(); // This can be combined with the following step into one function if desired
+				renderer->presentRender();
+			}
 
+
+			prevState = grid.getGridData(); // Trying to make it not render unless something has been updated...
+			
+			
 
 			// sleep();
 		}
