@@ -11,8 +11,7 @@
 // or using namespace Color; --> (risky) 
 // function(namedColor) 
 
-class Color {
-public:
+struct Color {
     enum NamedColor {
         WHITE,
         BLACK,
@@ -21,7 +20,8 @@ public:
         BLUE,
         PHSORNG,
         MAGENTA,
-        DRKGRY
+        DRKGRY,
+        TRANSP
     };
 
     static std::vector<int> getRGBAColorVector(NamedColor namedColor) {
@@ -35,6 +35,7 @@ public:
         case PHSORNG: return { 255, 204, 0, 255 };
         case MAGENTA: return { 255, 0, 255, 255 };
         case DRKGRY: return { 55, 55, 55, 255 };
+        case TRANSP: return { 0, 0, 0, 0 };
         default:      throw std::invalid_argument("Invalid named color");
         }
     }
@@ -50,6 +51,7 @@ public:
         case PHSORNG: return { 255, 204, 0 };
         case MAGENTA: return { 255, 0, 255 };
         case DRKGRY: return { 55, 55, 55, };
+        case TRANSP: return { 0, 0, 0, 0 };
         default:      throw std::invalid_argument("Invalid named color");
         }
     }
@@ -65,6 +67,7 @@ public:
         case PHSORNG: return { 255, 204, 0, 255 };
         case MAGENTA: return { 255, 0, 255, 255 };
         case DRKGRY: return { 55, 55, 55, 255 };
+        case TRANSP: return { 0, 0, 0, 0 };
         default:      throw std::invalid_argument("Invalid named color");
         }
     }
