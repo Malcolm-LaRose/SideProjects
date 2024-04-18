@@ -155,6 +155,7 @@ public:
 				updateCellStateAt(row, col, false);
 			}
 		}
+		resetIterNum();
 	}
 
 	int getRows() const {
@@ -196,6 +197,10 @@ private:
 	const int cellSize; // Square cell has equal side lengths
 
 	int iterNum;
+
+	void resetIterNum() {
+		iterNum = 0;
+	}
 
 };
 
@@ -475,6 +480,7 @@ public:
 
 			else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_r) {
 				grid.resetGrid();
+				GOLFuncs::printIterNum(grid);
 			}
 
 		}
@@ -564,7 +570,7 @@ private:
 };
 
 
-int main(int argc, char* args[]) {
+int main(int argc, char* argv[]) {
 	GameOfLife game(100, 100, 2, 12);
 	game.start();
 	return 0;
