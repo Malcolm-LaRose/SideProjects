@@ -10,11 +10,11 @@
 
 class MySDL_Renderer {
 public:
-	MySDL_Renderer(SDL_Window* window) : window(window), renderer(nullptr), SCREEN_WIDTH(100), SCREEN_HEIGHT(100), targetFPS(60) {
+	MySDL_Renderer(SDL_Window* window) : window(window), renderer(nullptr), INITIAL_SCREEN_WIDTH(100), INITIAL_SCREEN_HEIGHT(100), targetFPS(60) {
 		initSDL();
 	}
 
-	MySDL_Renderer(SDL_Window* window, int wid, int hei) : window(window), renderer(nullptr), SCREEN_WIDTH(wid), SCREEN_HEIGHT(hei), targetFPS(60) {
+	MySDL_Renderer(SDL_Window* window, int wid, int hei) : window(window), renderer(nullptr), INITIAL_SCREEN_WIDTH(wid), INITIAL_SCREEN_HEIGHT(hei), targetFPS(60) {
 		initSDL();
 	}
 
@@ -50,29 +50,46 @@ public:
 
 	// Add rendering functions here, or, have a way for another class to add something to the renderer here
 
-	void defaultRender() {
-		SDL_SetRenderDrawColor(renderer, 180, 180, 180, 255); // Background 
-		SDL_RenderClear(renderer);
-
-		// Rendering other stuff
-		int size = 100;
-
-		Point rectPos { (SCREEN_WIDTH - size) / 2, (SCREEN_HEIGHT - size) / 2 }; // Center pos
-		Square::Rectangle sq(rectPos, size);
-		sq.setColor(Color::getSDLColor(Color::MAGENTA));
-		sq.render(renderer);
-
-
-		presentRender();
+	void drawBackground() {
+	
 	}
 
+	int getScWidth() {
+		return SCREEN_WIDTH;
+	}
 
+	int getScHeight() {
+		return SCREEN_HEIGHT;
+	}
+
+	void presentRender() { // Or UpdateWindow?
+		// Present the rendered image
+		auto startTime = std::chrono::high_resolution_clock::now();
+		if (renderer == nullptr) {
+			printf("AHHHHHH!\n");
+		}
+
+		SDL_RenderPresent(renderer);
+
+
+		// Calculate time taken to render this frame
+		auto endTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> frameTime = endTime - startTime;
+
+		// If frame rendering took less time than desired frame rate, introduce a delay
+		if (frameTime.count() < (1000.0 / targetFPS)) {
+			SDL_Delay((Uint32)((1000.0 / targetFPS) - frameTime.count()));
+		}
+	}
 
 private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
 	// SDL_GLContext glContext;
+
+	const int INITIAL_SCREEN_WIDTH;
+	const int INITIAL_SCREEN_HEIGHT;
 
 	int SCREEN_WIDTH;
 	int SCREEN_HEIGHT;
@@ -95,7 +112,7 @@ private:
 		{
 
 			// Create window
-			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_OPENGL*/);
+			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_OPENGL*/);
 			if (window == NULL)
 			{
 				printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -103,6 +120,8 @@ private:
 			}
 			else
 			{
+				SCREEN_HEIGHT = INITIAL_SCREEN_HEIGHT;
+				SCREEN_WIDTH = INITIAL_SCREEN_WIDTH;
 				// Create renderer for window
 				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 				if (renderer == NULL)
@@ -121,26 +140,6 @@ private:
 		}
 
 		return success;
-	}
-
-	 void presentRender() { // Or UpdateWindow?
-		// Present the rendered image
-		auto startTime = std::chrono::high_resolution_clock::now();
-		if (renderer == nullptr) {
-			printf("AHHHHHH!\n");
-		}
-
-		SDL_RenderPresent(renderer);
-
-
-		// Calculate time taken to render this frame
-		auto endTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> frameTime = endTime - startTime;
-
-		// If frame rendering took less time than desired frame rate, introduce a delay
-		if (frameTime.count() < (1000.0 / targetFPS)) {
-			SDL_Delay((Uint32)((1000.0 / targetFPS) - frameTime.count()));
-		}
 	}
 
 	//bool initOpenGL() {
@@ -196,6 +195,11 @@ public:
 				std::pair<int, int> mousePosition = getMousePosition();
 
 				printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
+
+				if () {
+					
+				}
+
 			}
 
 
@@ -231,6 +235,26 @@ public:
 		delete evHandler;
 	}
 
+	void defaultRender() {
+
+		SDL_SetRenderDrawColor(renderer->getRenderer(), 80, 80, 88, 255); // Background 
+		SDL_RenderClear(renderer->getRenderer());
+
+		// Rendering other stuff
+		int size = 100;
+
+		Point rectPos{ (renderer->getScWidth() - size) / 2, (renderer->getScHeight() - size) / 2 }; // Center pos
+		Square::Rectangle sq(rectPos, size, true);
+		sq.setColor(Color::getSDLColor(Color::MAGENTA));
+		sq.render(renderer->getRenderer());
+
+		sq.setColor(Color::getSDLColor(Color::PHSORNG));
+		sq.render(renderer->getRenderer());
+
+
+		renderer->presentRender();
+	}
+
 
 	void start() {
 		if (!renderer || !evHandler) {
@@ -238,13 +262,12 @@ public:
 			return; // Exit early if renderer or event handler is not initialized
 		}
 
-		renderer->defaultRender();
+		defaultRender();
 
 		while (!quit) {
 			evHandler->pollEvent();
 
-			renderer->defaultRender();
-
+			renderer->presentRender();
 			// Check if quit event occurred
 			if (SDL_QuitRequested()) {
 				quit = true;
@@ -269,13 +292,20 @@ private:
 
 };
 
+// Do TicTacToe but rendered!
+
+class TicTacToe {
+
+
+
+};
+
 
 int main(int argc, char* argv[]) {
 
 
 	MySDL_Wrapper wrap;
 	wrap.start();
-
 
 	return 0;
 }
