@@ -142,31 +142,6 @@ private:
 		return success;
 	}
 
-	//bool initOpenGL() {
-	//	// Initialization flag
-	//	bool success = true;
-
-	//	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-	//	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-	//	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-	//	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 5);
-	//	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-	//	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	//	glContext = SDL_GL_CreateContext(window);
-
-	//	SDL_GL_MakeCurrent(window, glContext);
-
-	//	if (glContext == nullptr) {
-	//		// OpenGL context creation failed
-	//		printf("Failed to create OpenGL context: %s\n", SDL_GetError());
-	//		success = false;
-	//	}
-
-	//	return success;
-
-	//}
-
 };
 
 class MySDL_EventHandler { // This class is mostly for neater organization, no real logical/semantic purpose here (can hide messy code away from main game logic)
@@ -196,9 +171,7 @@ public:
 
 				printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
 
-				if () {
-					
-				}
+
 
 			}
 
@@ -221,7 +194,7 @@ private:
 
 };
 
-class MySDL_Wrapper {
+class MySDL_Wrapper { // This class should collect objects so they're accessible to both the renderer and evHandler, kapische?
 public:
 
 	MySDL_Wrapper() : renderer(nullptr), evHandler(nullptr), quit(false) {
@@ -288,14 +261,6 @@ private:
 	MySDL_Renderer* renderer;
 	MySDL_EventHandler* evHandler;
 	bool quit;
-
-
-};
-
-// Do TicTacToe but rendered!
-
-class TicTacToe {
-
 
 
 };
