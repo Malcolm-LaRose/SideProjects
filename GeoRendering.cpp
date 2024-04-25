@@ -8,13 +8,24 @@
 
 // OPENGL NOT ENABLED IN THIS VERSION!
 
+
+struct Settings {
+
+	const int INITIAL_SCREEN_WIDTH = 1920; // Initial screen width, can be overriden if necessary (second MySDL_Renderer constructor)
+	const int INITIAL_SCREEN_HEIGHT = 1080;
+
+};
+
+
 class MySDL_Renderer {
 public:
-	MySDL_Renderer(SDL_Window* window) : window(window), renderer(nullptr), INITIAL_SCREEN_WIDTH(100), INITIAL_SCREEN_HEIGHT(100), targetFPS(60) {
+
+
+	MySDL_Renderer(SDL_Window* window) : window(window), renderer(nullptr), SCREEN_WIDTH(settings.INITIAL_SCREEN_WIDTH), SCREEN_HEIGHT(settings.INITIAL_SCREEN_HEIGHT), targetFPS(60) {
 		initSDL();
 	}
 
-	MySDL_Renderer(SDL_Window* window, int wid, int hei) : window(window), renderer(nullptr), INITIAL_SCREEN_WIDTH(wid), INITIAL_SCREEN_HEIGHT(hei), targetFPS(60) {
+	MySDL_Renderer(SDL_Window* window, int wid, int hei) : window(window), renderer(nullptr), SCREEN_WIDTH(wid), SCREEN_HEIGHT(hei), targetFPS(60) {
 		initSDL();
 	}
 
@@ -83,13 +94,12 @@ public:
 	}
 
 private:
+	static Settings settings;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
 	// SDL_GLContext glContext;
 
-	const int INITIAL_SCREEN_WIDTH;
-	const int INITIAL_SCREEN_HEIGHT;
 
 	int SCREEN_WIDTH;
 	int SCREEN_HEIGHT;
@@ -112,7 +122,7 @@ private:
 		{
 
 			// Create window
-			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_OPENGL*/);
+			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_OPENGL*/);
 			if (window == NULL)
 			{
 				printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -120,8 +130,6 @@ private:
 			}
 			else
 			{
-				SCREEN_HEIGHT = INITIAL_SCREEN_HEIGHT;
-				SCREEN_WIDTH = INITIAL_SCREEN_WIDTH;
 				// Create renderer for window
 				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 				if (renderer == NULL)
@@ -141,6 +149,10 @@ private:
 
 		return success;
 	}
+
+protected:
+	MySDL_Renderer() = delete; // Delete default constructor
+
 
 };
 
@@ -216,7 +228,7 @@ public:
 		// Rendering other stuff
 		int size = 100;
 
-		Point rectPos{ (renderer->getScWidth() - size) / 2, (renderer->getScHeight() - size) / 2 }; // Center pos
+		Point rectPos{ (renderer->getScWidth() - size) / 2, (renderer->getScHeight() - size) / 2 }; // Top left of rectangle with size 100 centered on the screen center
 		Square::Rectangle sq(rectPos, size, true);
 		sq.setColor(Color::getSDLColor(Color::MAGENTA));
 		sq.render(renderer->getRenderer());
