@@ -1,4 +1,4 @@
-// #include "Shapes.h"
+#include "Shapes.h"
 
 #include <SDL.h>
 #include <SDL_syswm.h>
@@ -13,12 +13,28 @@
 
 struct MySettings {
 
+	static MySettings& getInstance() {
+		static MySettings instance;
+		return instance; // Returns a static reference to the MySettings struct
+	}
+
+
 	const int INITIAL_SCREEN_WIDTH = 1920; // Initial screen width, can be overriden if necessary (second MySDL_Renderer constructor)
 	const int INITIAL_SCREEN_HEIGHT = 1080;
 
 	const int TARGET_FPS = 180;
 
-	SDL_Color backgroundColor = { 158, 142, 62, 255 };
+
+	const int gridRows = 4;
+	const int gridCols = 4;
+
+	const Shapes::Point gameBoardTopLeft{ 10,10 };
+
+	SDL_Color backgroundColor = { 253, 222, 179, 255 };
+
+private:
+
+	MySettings() {} // Can't delete constructor
 
 };
 
@@ -74,7 +90,7 @@ public:
 
 	void renderAll() {
 	
-
+		renderBG();
 
 
 		presentRender();
@@ -83,7 +99,7 @@ public:
 	}
 
 private:
-	MySettings settings;
+	MySettings& settings = MySettings::getInstance();
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
@@ -138,6 +154,11 @@ private:
 	}
 
 	void renderBG() {
+		Shapes::Point screenTopLeft{ 0, 0 };
+		Shapes::Rectangle background(screenTopLeft, SCREEN_WIDTH, SCREEN_HEIGHT, true);
+		background.setColor(settings.backgroundColor);
+
+		background.render(renderer);
 
 	}
 
@@ -257,6 +278,10 @@ private:
 	const int cellSpacing;
 	const int cellSize;
 
+	MySettings& settings = MySettings::getInstance();
+
+	
+
 
 
 
@@ -273,15 +298,9 @@ class Score {
 static class G2048 { // Just for game functions
 public:
 
-	void renderBackground() {}
-
-	void renderCell() {}
-
-	void renderGrid() {}
-
-	void renderScore() {}
 
 
+private:
 
 
 
@@ -293,7 +312,7 @@ class MySDL_Wrapper { // This class should collect objects so they're accessible
 public:
 
 	MySDL_Wrapper() : renderer(nullptr), evHandler(nullptr), quit(false) {
-		renderer = new MySDL_Renderer(nullptr, 1000, 1000);
+		renderer = new MySDL_Renderer(nullptr, settings.INITIAL_SCREEN_WIDTH, settings.INITIAL_SCREEN_HEIGHT);
 		evHandler = new MySDL_EventHandler(renderer->getWindow(), renderer->getRenderer());
 	}
 
@@ -338,6 +357,8 @@ private:
 	MySDL_Renderer* renderer;
 	MySDL_EventHandler* evHandler;
 	bool quit;
+
+	MySettings& settings = MySettings::getInstance();
 
 
 };
