@@ -1,18 +1,24 @@
-#include "Shapes.h"
+// #include "Shapes.h"
 
 #include <SDL.h>
 #include <SDL_syswm.h>
+
 #include <stdio.h>
 #include <memory>
 #include <chrono>
+#include <random>
 
 // OPENGL NOT ENABLED IN THIS VERSION!
 
 
-struct Settings {
+struct MySettings {
 
 	const int INITIAL_SCREEN_WIDTH = 1920; // Initial screen width, can be overriden if necessary (second MySDL_Renderer constructor)
 	const int INITIAL_SCREEN_HEIGHT = 1080;
+
+	const int TARGET_FPS = 180;
+
+	SDL_Color backgroundColor = { 158, 142, 62, 255 };
 
 };
 
@@ -21,11 +27,11 @@ class MySDL_Renderer {
 public:
 
 
-	MySDL_Renderer(SDL_Window* window) : window(window), renderer(nullptr), SCREEN_WIDTH(settings.INITIAL_SCREEN_WIDTH), SCREEN_HEIGHT(settings.INITIAL_SCREEN_HEIGHT), targetFPS(60) {
+	MySDL_Renderer(SDL_Window* window) : window(window), renderer(nullptr), SCREEN_WIDTH(settings.INITIAL_SCREEN_WIDTH), SCREEN_HEIGHT(settings.INITIAL_SCREEN_HEIGHT) {
 		initSDL();
 	}
 
-	MySDL_Renderer(SDL_Window* window, int wid, int hei) : window(window), renderer(nullptr), SCREEN_WIDTH(wid), SCREEN_HEIGHT(hei), targetFPS(60) {
+	MySDL_Renderer(SDL_Window* window, int wid, int hei) : window(window), renderer(nullptr), SCREEN_WIDTH(wid), SCREEN_HEIGHT(hei) {
 		initSDL();
 	}
 
@@ -47,7 +53,6 @@ public:
 			renderer = nullptr;
 		}
 		if (window) {
-			/*SDL_GL_DeleteContext(glContext);*/
 			SDL_DestroyWindow(window);
 			window = nullptr;
 		}
@@ -59,12 +64,6 @@ public:
 		return renderer;
 	}
 
-	// Add rendering functions here, or, have a way for another class to add something to the renderer here
-
-	void drawBackground() {
-
-	}
-
 	int getScWidth() {
 		return SCREEN_WIDTH;
 	}
@@ -73,28 +72,18 @@ public:
 		return SCREEN_HEIGHT;
 	}
 
-	void presentRender() { // Or UpdateWindow?
-		// Present the rendered image
-		auto startTime = std::chrono::high_resolution_clock::now();
-		if (renderer == nullptr) {
-			printf("AHHHHHH!\n");
-		}
-
-		SDL_RenderPresent(renderer);
+	void renderAll() {
+	
 
 
-		// Calculate time taken to render this frame
-		auto endTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> frameTime = endTime - startTime;
 
-		// If frame rendering took less time than desired frame rate, introduce a delay
-		if (frameTime.count() < (1000.0 / targetFPS)) {
-			SDL_Delay((Uint32)((1000.0 / targetFPS) - frameTime.count()));
-		}
+		presentRender();
+		SDL_RenderClear(renderer);
+	
 	}
 
 private:
-	static Settings settings;
+	MySettings settings;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
@@ -103,8 +92,6 @@ private:
 
 	int SCREEN_WIDTH;
 	int SCREEN_HEIGHT;
-
-	int targetFPS;
 
 
 	bool initSDL()
@@ -150,6 +137,39 @@ private:
 		return success;
 	}
 
+	void renderBG() {
+
+	}
+
+	void renderGrid() {}
+
+	void renderCells() {}
+
+	void renderScore() {}
+
+
+	void presentRender() { // Or UpdateWindow?
+		// Present the rendered image
+		auto startTime = std::chrono::high_resolution_clock::now();
+		if (renderer == nullptr) {
+			printf("AHHHHHH!\n");
+		}
+
+		SDL_RenderPresent(renderer);
+
+
+		// Calculate time taken to render this frame
+		auto endTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> frameTime = endTime - startTime;
+
+		const int& targetFPS = settings.TARGET_FPS; // Get target FPS from settings
+
+		// If frame rendering took less time than desired frame rate, introduce a delay
+		if (frameTime.count() < (1000.0 / targetFPS)) {
+			SDL_Delay((Uint32)((1000.0 / targetFPS) - frameTime.count()));
+		}
+	}
+
 protected:
 	MySDL_Renderer() = delete; // Delete default constructor
 
@@ -183,8 +203,6 @@ public:
 
 				printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
 
-
-
 			}
 		}
 	}
@@ -193,8 +211,7 @@ public:
 private:
 	SDL_Window* window; // So events can manipulate the window (render is aware of window, should be okay)
 	SDL_Event event;
-	SDL_Renderer* renderer;
-
+	SDL_Renderer* renderer; // So events can tell the renderer to do something
 
 
 
@@ -221,7 +238,7 @@ class Grid {
 public:
 
 	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
-		gridData.resize(rows, cols); // Make a 4x4 grid (empty, no cells yet)
+		gridData.resize(rows, std::vector<Cell>(cols)); // Make a 4x4 grid (empty, no cells yet) --> Eventually start with 1 cell randomly placed
 	}
 
 	void placeCellAt(int row, int col) {
@@ -239,6 +256,31 @@ private:
 
 	const int cellSpacing;
 	const int cellSize;
+
+
+
+
+};
+
+class Score {
+
+
+
+
+};
+
+
+static class G2048 { // Just for game functions
+public:
+
+	void renderBackground() {}
+
+	void renderCell() {}
+
+	void renderGrid() {}
+
+	void renderScore() {}
+
 
 
 
@@ -273,7 +315,9 @@ public:
 		while (!quit) {
 			evHandler->pollEvent();
 
-			renderer->presentRender();
+			// Big encapsulating rendering function here
+
+			renderer->renderAll();
 			// Check if quit event occurred
 			if (SDL_QuitRequested()) {
 				quit = true;
