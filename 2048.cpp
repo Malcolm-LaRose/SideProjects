@@ -7,8 +7,9 @@
 #include <memory>
 #include <chrono>
 #include <random>
+#include <optional>
 
-// OPENGL NOT ENABLED IN THIS VERSION!
+// OPENGL NOT ENABLED IN THIS VERSION | C++17 REQUIRED
 
 
 std::random_device rd;
@@ -58,7 +59,7 @@ class Cell { // Cells will have to be dynamically created AND DESTROYED! --> Nee
 public:
 	Cell() : number(2) {}
 
-	Cell combineCells(Cell c1, Cell c2) {}
+	Cell(int num) : number(num) {}
 
 
 private:
@@ -71,23 +72,32 @@ class Grid {
 public:
 
 	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
-		gridData.resize(rows, std::vector<Cell>(cols)); // Make a 4x4 grid (empty, no cells yet) --> Eventually start with 1 cell randomly placed
+		gridData.resize(rows, std::vector<std::optional<Cell>>(cols));
 	}
 
 	void placeRandomCell() {
-		int randRow = randomRowOrCol(gen);
+		int randRow = randomRowOrCol(gen); // Size of int is enforced safe by the random number generator
 		int randCol = randomRowOrCol(gen);
+
+		// Check for cell
+		if (!checkForCellAt(randRow, randCol)) {
+			// Is no cell, place one
+			Cell cell = createCell();
+			gridData[randRow][randCol].emplace(cell);
+		}
+		else {
+			// Try again
+			placeRandomCell();
+		}
 
 		printf("Row: %i, Col: %i", randRow, randCol);
 	}
 
-	void placeCellAt(int row, int col) {
-
-	}
-
 	void moveCell() {}
 
-	std::vector<std::vector<Cell>> getGridData() {
+	Cell mergeCells(Cell c1, Cell c2) {}
+
+	std::vector<std::vector<std::optional<Cell>>> getGridData() {
 		return gridData;
 	}
 
@@ -96,15 +106,24 @@ private:
 	int rows;
 	int cols;
 
-	std::vector<std::vector<Cell>> gridData; // Actual data
+	std::vector<std::vector<std::optional<Cell>>> gridData; // Actual data (empty spaces or Cells)
 
 	const int cellSpacing;
 	const int cellSize;
 
 	MySettings& settings = MySettings::getInstance();
 
-	Cell& getCell(int row, int col) {
-		
+	bool checkForCellAt(int row, int col) {
+		return (gridData[row][col]).has_value();
+	}
+
+	std::optional<Cell> getCellAt(int row, int col) {
+		return gridData[row][col];
+	}
+
+	Cell createCell() {
+		// Later this can be 2 or 4 randomly
+		return Cell(2);
 	}
 
 
@@ -295,8 +314,7 @@ public:
 
 	}
 
-	~MySDL_EventHandler() {
-	}
+	~MySDL_EventHandler() {}
 
 	void pollEvent() {
 
@@ -362,9 +380,6 @@ public:
 		}
 
 
-
-		
-
 		while (!quit) {
 			evHandler->pollEvent();
 
@@ -373,7 +388,7 @@ public:
 			renderer->renderAll();
 			// Check if quit event occurred
 			if (SDL_QuitRequested()) {
-				quit = true;
+				stop();
 			}
 
 		}
