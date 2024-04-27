@@ -1,9 +1,10 @@
 #include "Shapes.h"
+#include "Color.h"
 
 #include <SDL.h>
 #include <SDL_syswm.h>
 
-#include <stdio.h>
+#include <cstdio>
 #include <memory>
 #include <chrono>
 #include <random>
@@ -15,7 +16,7 @@
 std::random_device rd;
 std::mt19937 gen(rd());
 
-std::uniform_int_distribution<> randomRowOrCol(1, 4);
+std::uniform_int_distribution<> randomRowOrCol(0, 3);
 
 
 struct MySettings {
@@ -40,7 +41,7 @@ struct MySettings {
 	const int gridCellSize = 200;
 	const int gridCellSpacing = 20;
 
-	const Shapes::Point gameBoardTopLeft{ 10, 10 };
+	const Shapes::Point gameBoardTopLeft{ 40, 40 };
 
 	SDL_Color backgroundColor = { 253, 222, 179, 255 };
 	SDL_Color gridColor = {};
@@ -57,9 +58,43 @@ private:
 
 class Cell { // Cells will have to be dynamically created AND DESTROYED! --> Need all constructors
 public:
+	// Constructors
 	Cell() : number(2) {}
 
 	Cell(int num) : number(num) {}
+
+	// Default destructor is explicitly the default
+	~Cell() = default; 
+
+	// Copy constructor
+	Cell(const Cell& other) : number(other.number) {}
+
+	// Copy assignment constructor
+	Cell& operator=(const Cell& other) {
+		if (this != &other) {
+			number = other.number;
+		}
+		return *this;
+	}
+
+	// Move constructor
+	Cell(Cell&& other) noexcept : number(std::move(other.number)) {}
+
+	// Move assignment operator
+	Cell& operator=(Cell&& other) noexcept {
+		if (this != &other) {
+			number = std::move(other.number);
+		}
+		return *this;
+	}
+
+	int getNumber() {
+		return number;
+	}
+
+	void updateNumber(int& mergingNumbers) {
+		number = (2 * mergingNumbers);
+	}
 
 
 private:
@@ -76,35 +111,64 @@ public:
 	}
 
 	void placeRandomCell() {
-		int randRow = randomRowOrCol(gen); // Size of int is enforced safe by the random number generator
-		int randCol = randomRowOrCol(gen);
-
-		// Check for cell
-		if (!checkForCellAt(randRow, randCol)) {
-			// Is no cell, place one
-			Cell cell = createCell();
-			gridData[randRow][randCol].emplace(cell);
-		}
-		else {
-			// Try again
-			placeRandomCell();
+		if (isFull()) {
+			exit(0);
 		}
 
-		printf("Row: %i, Col: %i", randRow, randCol);
+		int randRow, randCol;
+		do {
+			randRow = randomRowOrCol(gen);
+			randCol = randomRowOrCol(gen);
+		} while (checkForCellAt(randRow, randCol));
+
+		Cell cell = createCell();
+		gridData[randRow][randCol].emplace(cell);
 	}
 
 	void moveCell() {}
 
-	Cell mergeCells(Cell c1, Cell c2) {}
+	Cell mergeCells(Cell targetCell, Cell movingCell) {
+		// Update number of target cell
+		int newValue = targetCell.getNumber() + movingCell.getNumber();
+		
+
+	}
+
+	void moveAndMergeAllCells() {}
 
 	std::vector<std::vector<std::optional<Cell>>> getGridData() {
 		return gridData;
 	}
 
+	bool isFull() {
+    const int capacity = rows * cols; // Total number of cells on the board
+    int filledCells = 0; // Counter for filled cells
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (checkForCellAt(i, j)) {
+                filledCells++; // Increment the filled cell count
+            }
+        }
+    }
+
+	fflush(stdout);
+    printf("%i", filledCells);
+
+
+    if (filledCells == capacity) {
+        printf("Game over, man!");
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 
 private:
-	int rows;
-	int cols;
+	const int rows;
+	const int cols;
 
 	std::vector<std::vector<std::optional<Cell>>> gridData; // Actual data (empty spaces or Cells)
 
@@ -114,6 +178,7 @@ private:
 	MySettings& settings = MySettings::getInstance();
 
 	bool checkForCellAt(int row, int col) {
+		// printf("row: %i col: %i", row, col);
 		return (gridData[row][col]).has_value();
 	}
 
@@ -131,18 +196,28 @@ private:
 };
 
 class Score {
+public:
 
+	Score() : score(0) {}
+
+	void updateScore() {
+	// Call me from the mergeCells function
+		// Get the value of the new cell and add it to the score
+
+	}
+
+	uint64_t getScore() {
+		return score;
+	}
+
+
+private:
+
+	uint64_t score; // Unsigned 64 bit integer (yuge!)
 
 
 
 };
-
-
-class G2048 { // Just for game functions
-
-
-};
-
 
 class MySDL_Renderer {
 public:
@@ -202,6 +277,7 @@ public:
 	void renderAll() {
 	
 		renderBG();
+		renderGrid();
 
 
 		presentRender();
@@ -273,9 +349,46 @@ private:
 
 	}
 
-	void renderGrid() {}
+	void renderCell() {}
 
-	void renderCells() {}
+	void renderGrid() {
+		const int& cellSpacing = settings.gridCellSpacing;
+		const int& cellSize = settings.gridCellSize;
+
+		const int& rows = settings.gridRows;
+		const int& cols = settings.gridCols;
+
+		// Set color for grid lines
+		SDL_Color gridColor = Color::getSDLColor(Color::BLACK);
+
+		// Calculate total width and height of the grid
+		int totalWidth = cols * cellSize + (cols + 1) * cellSpacing;
+		int totalHeight = rows * cellSize + (rows + 1) * cellSpacing;
+
+
+		SDL_Color bgColor = Color::getSDLColor(Color::WHITE);
+
+		// Render background rectangle
+		SDL_Rect bgRect = { 0, 0, totalWidth, totalHeight };
+		SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+		SDL_RenderFillRect(renderer, &bgRect);
+
+		// Render vertical grid lines
+		for (int col = 0; col < cols + 1 ; col++) {
+			int x = (col) * cellSize + col * cellSpacing;
+			SDL_Rect gridLineRect = { x, 0, cellSpacing, totalHeight };
+			SDL_SetRenderDrawColor(renderer, gridColor.r, gridColor.g, gridColor.b, gridColor.a);
+			SDL_RenderFillRect(renderer, &gridLineRect);
+		}
+
+		// Render horizontal grid lines
+		for (int row = 0; row < rows + 1 ; row++) {
+			int y = (row) * cellSize + row * cellSpacing;
+			SDL_Rect gridLineRect = { 0, y, totalWidth, cellSpacing };
+			SDL_SetRenderDrawColor(renderer, gridColor.r, gridColor.g, gridColor.b, gridColor.a);
+			SDL_RenderFillRect(renderer, &gridLineRect);
+		}
+	}
 
 	void renderScore() {}
 
@@ -333,11 +446,30 @@ public:
 				// Get coordinates
 				std::pair<int, int> mousePosition = getMousePosition();
 
-				printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
+				// printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
 
 				grid.placeRandomCell();
 
 			}
+
+			else if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
+				switch (event.key.keysym.sym) {
+				case SDLK_UP:
+
+					break;
+				case SDLK_LEFT:
+
+					break;
+				case SDLK_DOWN:
+
+					break;
+				case SDLK_RIGHT:
+
+					break;
+				}
+			}
+
+
 		}
 	}
 
