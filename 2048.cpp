@@ -11,6 +11,12 @@
 // OPENGL NOT ENABLED IN THIS VERSION!
 
 
+std::random_device rd;
+std::mt19937 gen(rd());
+
+std::uniform_int_distribution<> randomRowOrCol(1, 4);
+
+
 struct MySettings {
 
 	static MySettings& getInstance() {
@@ -25,16 +31,96 @@ struct MySettings {
 	const int TARGET_FPS = 180;
 
 
+
+
 	const int gridRows = 4;
 	const int gridCols = 4;
 
-	const Shapes::Point gameBoardTopLeft{ 10,10 };
+	const int gridCellSize = 200;
+	const int gridCellSpacing = 20;
+
+	const Shapes::Point gameBoardTopLeft{ 10, 10 };
 
 	SDL_Color backgroundColor = { 253, 222, 179, 255 };
+	SDL_Color gridColor = {};
+	SDL_Color cellColor = {};
+	SDL_Color scoreColor = {};
 
 private:
 
-	MySettings() {} // Can't delete constructor
+	MySettings() {} // Don't delete constructor
+
+};
+
+// Put game classes here!
+
+class Cell { // Cells will have to be dynamically created AND DESTROYED! --> Need all constructors
+public:
+	Cell() : number(2) {}
+
+	Cell combineCells(Cell c1, Cell c2) {}
+
+
+private:
+	int number; // Default 2 for now, add random chance for 4 later
+
+
+};
+
+class Grid {
+public:
+
+	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
+		gridData.resize(rows, std::vector<Cell>(cols)); // Make a 4x4 grid (empty, no cells yet) --> Eventually start with 1 cell randomly placed
+	}
+
+	void placeRandomCell() {
+		int randRow = randomRowOrCol(gen);
+		int randCol = randomRowOrCol(gen);
+
+		printf("Row: %i, Col: %i", randRow, randCol);
+	}
+
+	void placeCellAt(int row, int col) {
+
+	}
+
+	void moveCell() {}
+
+	std::vector<std::vector<Cell>> getGridData() {
+		return gridData;
+	}
+
+
+private:
+	int rows;
+	int cols;
+
+	std::vector<std::vector<Cell>> gridData; // Actual data
+
+	const int cellSpacing;
+	const int cellSize;
+
+	MySettings& settings = MySettings::getInstance();
+
+	Cell& getCell(int row, int col) {
+		
+	}
+
+
+
+};
+
+class Score {
+
+
+
+
+};
+
+
+class G2048 { // Just for game functions
+
 
 };
 
@@ -43,11 +129,11 @@ class MySDL_Renderer {
 public:
 
 
-	MySDL_Renderer(SDL_Window* window) : window(window), renderer(nullptr), SCREEN_WIDTH(settings.INITIAL_SCREEN_WIDTH), SCREEN_HEIGHT(settings.INITIAL_SCREEN_HEIGHT) {
+	MySDL_Renderer(SDL_Window* window, Grid& grid) : window(window), renderer(nullptr), SCREEN_WIDTH(settings.INITIAL_SCREEN_WIDTH), SCREEN_HEIGHT(settings.INITIAL_SCREEN_HEIGHT), grid(grid) {
 		initSDL();
 	}
 
-	MySDL_Renderer(SDL_Window* window, int wid, int hei) : window(window), renderer(nullptr), SCREEN_WIDTH(wid), SCREEN_HEIGHT(hei) {
+	MySDL_Renderer(SDL_Window* window, const int wid, const int hei, Grid& grid) : window(window), renderer(nullptr), SCREEN_WIDTH(wid), SCREEN_HEIGHT(hei), grid(grid) {
 		initSDL();
 	}
 
@@ -59,16 +145,22 @@ public:
 	// Disable move constructor and move assignment
 	MySDL_Renderer(MySDL_Renderer&&) = delete;
 
+	~MySDL_Renderer()
+	{
+		quitSDL(); // Last thing in the chain should quit
+	}
+
 	SDL_Window* getWindow() {
 		return window;
 	}
 
 	void quitSDL() {
-		if (renderer) {
+		if (renderer != nullptr) {
 			SDL_DestroyRenderer(renderer);
 			renderer = nullptr;
+			
 		}
-		if (window) {
+		if (window != nullptr) {
 			SDL_DestroyWindow(window);
 			window = nullptr;
 		}
@@ -102,12 +194,12 @@ private:
 	MySettings& settings = MySettings::getInstance();
 	SDL_Window* window;
 	SDL_Renderer* renderer;
-
-	// SDL_GLContext glContext;
-
-
+	
 	int SCREEN_WIDTH;
 	int SCREEN_HEIGHT;
+
+
+	Grid& grid;
 
 
 	bool initSDL()
@@ -126,7 +218,7 @@ private:
 
 			// Create window
 			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_OPENGL*/);
-			if (window == NULL)
+			if (window == nullptr)
 			{
 				printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 				success = false;
@@ -135,7 +227,7 @@ private:
 			{
 				// Create renderer for window
 				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-				if (renderer == NULL)
+				if (renderer == nullptr)
 				{
 					printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
 					success = false;
@@ -173,7 +265,7 @@ private:
 		// Present the rendered image
 		auto startTime = std::chrono::high_resolution_clock::now();
 		if (renderer == nullptr) {
-			printf("AHHHHHH!\n");
+			return; // Get out of the function
 		}
 
 		SDL_RenderPresent(renderer);
@@ -199,11 +291,12 @@ protected:
 
 class MySDL_EventHandler { // This class is mostly for neater organization, no real logical/semantic purpose here (can hide messy code away from main game logic)
 public:
-	MySDL_EventHandler(SDL_Window* window, SDL_Renderer* renderer) : window(window), event(), renderer(renderer) {
+	MySDL_EventHandler(SDL_Window* window, MySDL_Renderer* renderer, Grid& grid) : window(window), event(), renderer(renderer), grid(grid) {
 
 	}
 
-	~MySDL_EventHandler() {}
+	~MySDL_EventHandler() {
+	}
 
 	void pollEvent() {
 
@@ -214,7 +307,7 @@ public:
 			// printf("Event type: %d\n", event.type);
 
 			if (event.type == SDL_QUIT) {
-				exit(0);
+				renderer->quitSDL();
 			}
 
 			else if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -224,6 +317,8 @@ public:
 
 				printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
 
+				grid.placeRandomCell();
+
 			}
 		}
 	}
@@ -232,77 +327,14 @@ public:
 private:
 	SDL_Window* window; // So events can manipulate the window (render is aware of window, should be okay)
 	SDL_Event event;
-	SDL_Renderer* renderer; // So events can tell the renderer to do something
+	MySDL_Renderer* renderer; // So events can tell the renderer to do something
+
+	Grid& grid;
 
 
-
-	std::pair<int, int> getMousePosition() {
+	std::pair<int&, int&> getMousePosition() {
 		return { event.motion.x, event.motion.y };
 	}
-
-};
-
-// Put game classes here!
-
-class Cell { // Cells will have to be dynamically created AND DESTROYED! --> Need all constructors
-public:
-	Cell() : number(2) {}
-
-
-private:
-	int number; // Default 2 for now, add random chance for 4 later
-
-
-};
-
-class Grid {
-public:
-
-	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
-		gridData.resize(rows, std::vector<Cell>(cols)); // Make a 4x4 grid (empty, no cells yet) --> Eventually start with 1 cell randomly placed
-	}
-
-	void placeCellAt(int row, int col) {
-		
-	}
-
-	void moveCell() {}
-
-
-private:
-	int rows;
-	int cols;
-
-	std::vector<std::vector<Cell>> gridData; // Actual data
-
-	const int cellSpacing;
-	const int cellSize;
-
-	MySettings& settings = MySettings::getInstance();
-
-	
-
-
-
-
-};
-
-class Score {
-
-
-
-
-};
-
-
-static class G2048 { // Just for game functions
-public:
-
-
-
-private:
-
-
 
 };
 
@@ -311,9 +343,9 @@ private:
 class MySDL_Wrapper { // This class should collect objects so they're accessible to both the renderer and evHandler, kapische?
 public:
 
-	MySDL_Wrapper() : renderer(nullptr), evHandler(nullptr), quit(false) {
-		renderer = new MySDL_Renderer(nullptr, settings.INITIAL_SCREEN_WIDTH, settings.INITIAL_SCREEN_HEIGHT);
-		evHandler = new MySDL_EventHandler(renderer->getWindow(), renderer->getRenderer());
+	MySDL_Wrapper() : renderer(nullptr), evHandler(nullptr), quit(false), grid(settings.gridCellSpacing, settings.gridCellSize) {
+		renderer = new MySDL_Renderer(nullptr, settings.INITIAL_SCREEN_WIDTH, settings.INITIAL_SCREEN_HEIGHT, grid);
+		evHandler = new MySDL_EventHandler(renderer->getWindow(), renderer, grid);
 	}
 
 	~MySDL_Wrapper() {
@@ -328,6 +360,8 @@ public:
 			printf("Renderer or EventHandler is null!\n");
 			return; // Exit early if renderer or event handler is not initialized
 		}
+
+
 
 		
 
@@ -359,6 +393,8 @@ private:
 	bool quit;
 
 	MySettings& settings = MySettings::getInstance();
+
+	Grid grid;
 
 
 };
