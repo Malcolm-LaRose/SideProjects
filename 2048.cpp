@@ -12,6 +12,11 @@
 
 // OPENGL NOT ENABLED IN THIS VERSION | C++17 REQUIRED
 
+// TO DO
+	// Make window resizeable and grid padded so it floats in the middle vertically
+	// Score
+	// Game
+
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -108,6 +113,12 @@ public:
 
 	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
 		gridData.resize(rows, std::vector<std::optional<Cell>>(cols));
+		placeRandomCell(); // Start with one cell randomly placed
+	}
+
+	bool checkForCellAt(int row, int col) {
+		// printf("row: %i col: %i", row, col);
+		return (gridData[row][col]).has_value();
 	}
 
 	void placeRandomCell() {
@@ -142,7 +153,7 @@ public:
 
 	bool isFull() {
     const int capacity = rows * cols; // Total number of cells on the board
-    int filledCells = 0; // Counter for filled cells
+    int filledCells = 1; // Counter for filled cells
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -176,11 +187,6 @@ private:
 	const int cellSize;
 
 	MySettings& settings = MySettings::getInstance();
-
-	bool checkForCellAt(int row, int col) {
-		// printf("row: %i col: %i", row, col);
-		return (gridData[row][col]).has_value();
-	}
 
 	std::optional<Cell> getCellAt(int row, int col) {
 		return gridData[row][col];
@@ -278,6 +284,7 @@ public:
 	
 		renderBG();
 		renderGrid();
+		renderCell();
 
 
 		presentRender();
@@ -349,7 +356,35 @@ private:
 
 	}
 
-	void renderCell() {}
+	void renderCell() {
+		const int& cellSpacing = settings.gridCellSpacing;
+		const int& cellSize = settings.gridCellSize;
+
+		const int& rows = settings.gridRows;
+		const int& cols = settings.gridCols;
+
+		// Set color for cells
+		SDL_Color cellColor = Color::getSDLColor(Color::RED);
+
+		// Get the position from the cells location in the grid
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				if (grid.checkForCellAt(i, j)) {
+					int topLeftX = cellSpacing * ( j + 1 ) + cellSize * j;
+					int topLeftY = cellSpacing * (i + 1) + cellSize * i;
+
+					SDL_Rect cellRect = { topLeftX,topLeftY,cellSize,cellSize };
+
+
+					SDL_SetRenderDrawColor(renderer, cellColor.r, cellColor.g, cellColor.b, cellColor.a);
+					SDL_RenderFillRect(renderer, &cellRect);
+				}
+			}
+		}
+
+	
+	
+	}
 
 	void renderGrid() {
 		const int& cellSpacing = settings.gridCellSpacing;
@@ -388,6 +423,9 @@ private:
 			SDL_SetRenderDrawColor(renderer, gridColor.r, gridColor.g, gridColor.b, gridColor.a);
 			SDL_RenderFillRect(renderer, &gridLineRect);
 		}
+
+
+
 	}
 
 	void renderScore() {}
