@@ -16,12 +16,13 @@
 	// Make window resizeable and grid padded so it floats in the middle vertically
 	// Score
 	// Game
+	// Improve graphics
 
 
 std::random_device rd;
 std::mt19937 gen(rd());
 
-std::uniform_int_distribution<> randomRowOrCol(0, 3);
+std::uniform_int_distribution<> randomRowOrCol(0, 3); // Forced to be safe by restricting range here
 
 
 struct MySettings {
@@ -31,14 +32,10 @@ struct MySettings {
 		return instance; // Returns a static reference to the MySettings struct
 	}
 
+	const int TARGET_FPS = 180;
 
 	const int INITIAL_SCREEN_WIDTH = 1920; // Initial screen width, can be overriden if necessary (second MySDL_Renderer constructor)
 	const int INITIAL_SCREEN_HEIGHT = 1080;
-
-	const int TARGET_FPS = 180;
-
-
-
 
 	const int gridRows = 4;
 	const int gridCols = 4;
@@ -46,11 +43,21 @@ struct MySettings {
 	const int gridCellSize = 200;
 	const int gridCellSpacing = 20;
 
-	const Shapes::Point gameBoardTopLeft{ 40, 40 };
+	// Calculate total width and height of the grid
+	int totalWidth = gridCols * gridCellSize + (gridCols + 1) * gridCellSpacing;
+	int totalHeight = gridRows * gridCellSize + (gridRows + 1) * gridCellSpacing;
 
-	SDL_Color backgroundColor = { 253, 222, 179, 255 };
-	SDL_Color gridColor = {};
-	SDL_Color cellColor = {};
+	SDL_Color farBackColor = { 100, 100, 100, 100 };
+	SDL_Color backgroundColor = { 204, 192, 178, 255 };
+	SDL_Color gridColor = { 187, 173, 160, 255 };
+
+
+
+	SDL_Color cell2Color = {};
+	SDL_Color cell4Color = {};
+
+
+
 	SDL_Color scoreColor = {};
 
 private:
@@ -319,7 +326,7 @@ private:
 		{
 
 			// Create window
-			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_OPENGL*/);
+			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 			if (window == nullptr)
 			{
 				printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -350,7 +357,7 @@ private:
 	void renderBG() {
 		Shapes::Point screenTopLeft{ 0, 0 };
 		Shapes::Rectangle background(screenTopLeft, SCREEN_WIDTH, SCREEN_HEIGHT, true);
-		background.setColor(settings.backgroundColor);
+		background.setColor(settings.farBackColor);
 
 		background.render(renderer);
 
@@ -366,6 +373,13 @@ private:
 		// Set color for cells
 		SDL_Color cellColor = Color::getSDLColor(Color::RED);
 
+		// Calculate total width and height of the grid
+		int totalWidth = cols * cellSize + (cols + 1) * cellSpacing;
+		int totalHeight = rows * cellSize + (rows + 1) * cellSpacing;
+
+		int paddingWidth = (SCREEN_WIDTH / 2) - (totalWidth / 2);
+		int paddingHeight = (SCREEN_HEIGHT / 2) - (totalHeight / 2);
+
 		// Get the position from the cells location in the grid
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
@@ -374,6 +388,8 @@ private:
 					int topLeftY = cellSpacing * (i + 1) + cellSize * i;
 
 					SDL_Rect cellRect = { topLeftX,topLeftY,cellSize,cellSize };
+					cellRect.x += paddingWidth;
+					cellRect.y += paddingHeight;
 
 
 					SDL_SetRenderDrawColor(renderer, cellColor.r, cellColor.g, cellColor.b, cellColor.a);
@@ -393,25 +409,33 @@ private:
 		const int& rows = settings.gridRows;
 		const int& cols = settings.gridCols;
 
+
 		// Set color for grid lines
-		SDL_Color gridColor = Color::getSDLColor(Color::BLACK);
+		SDL_Color gridColor = settings.gridColor;
 
-		// Calculate total width and height of the grid
-		int totalWidth = cols * cellSize + (cols + 1) * cellSpacing;
-		int totalHeight = rows * cellSize + (rows + 1) * cellSpacing;
+		int paddingWidth = (SCREEN_WIDTH / 2) - (settings.totalHeight / 2);
+		int paddingHeight = (SCREEN_HEIGHT / 2) - (settings.totalHeight / 2);
 
 
-		SDL_Color bgColor = Color::getSDLColor(Color::WHITE);
+		SDL_Color bgColor = settings.backgroundColor;
 
 		// Render background rectangle
-		SDL_Rect bgRect = { 0, 0, totalWidth, totalHeight };
+		SDL_Rect bgRect = { 0, 0, settings.totalWidth, settings.totalHeight };
+
+		bgRect.x += paddingWidth;
+		bgRect.y += paddingHeight;
+
 		SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
 		SDL_RenderFillRect(renderer, &bgRect);
 
 		// Render vertical grid lines
 		for (int col = 0; col < cols + 1 ; col++) {
 			int x = (col) * cellSize + col * cellSpacing;
-			SDL_Rect gridLineRect = { x, 0, cellSpacing, totalHeight };
+			SDL_Rect gridLineRect = { x, 0, cellSpacing, settings.totalHeight };
+
+			gridLineRect.x += paddingWidth;
+			gridLineRect.y += paddingHeight;
+
 			SDL_SetRenderDrawColor(renderer, gridColor.r, gridColor.g, gridColor.b, gridColor.a);
 			SDL_RenderFillRect(renderer, &gridLineRect);
 		}
@@ -419,7 +443,11 @@ private:
 		// Render horizontal grid lines
 		for (int row = 0; row < rows + 1 ; row++) {
 			int y = (row) * cellSize + row * cellSpacing;
-			SDL_Rect gridLineRect = { 0, y, totalWidth, cellSpacing };
+			SDL_Rect gridLineRect = { 0, y, settings.totalWidth, cellSpacing };
+
+			gridLineRect.x += paddingWidth;
+			gridLineRect.y += paddingHeight;
+
 			SDL_SetRenderDrawColor(renderer, gridColor.r, gridColor.g, gridColor.b, gridColor.a);
 			SDL_RenderFillRect(renderer, &gridLineRect);
 		}
