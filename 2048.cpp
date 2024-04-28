@@ -37,24 +37,41 @@ struct MySettings {
 	const int INITIAL_SCREEN_WIDTH = 1920; // Initial screen width, can be overriden if necessary (second MySDL_Renderer constructor)
 	const int INITIAL_SCREEN_HEIGHT = 1080;
 
+	const int windowMaxWidth = 1920;
+	const int windowMaxHeight = 1080;
+
 	const int gridRows = 4;
 	const int gridCols = 4;
 
-	const int gridCellSize = 200;
-	const int gridCellSpacing = 20;
+	const int gridCellSize = 192;
+	const int gridCellSpacing = 16;
 
 	// Calculate total width and height of the grid
 	int totalWidth = gridCols * gridCellSize + (gridCols + 1) * gridCellSpacing;
 	int totalHeight = gridRows * gridCellSize + (gridRows + 1) * gridCellSpacing;
 
-	SDL_Color farBackColor = { 100, 100, 100, 100 };
+	int& windowMinWidth = totalWidth;
+	int& windowMinHeight = totalHeight;
+
+	SDL_Color farBackColor = { 80, 80, 80, 100 };
 	SDL_Color backgroundColor = { 204, 192, 178, 255 };
 	SDL_Color gridColor = { 187, 173, 160, 255 };
 
 
 
-	SDL_Color cell2Color = {};
-	SDL_Color cell4Color = {};
+	SDL_Color cell2Color = {233, 228, 218, 255};
+	SDL_Color cell4Color = {236,224,202,255};
+	SDL_Color cell8Color = {242,177,121,255};
+	SDL_Color cell16Color = {236,141,83,255};
+	SDL_Color cell32Color = {245,124,95,255};
+	SDL_Color cell64Color = {233,89,54,255};
+	SDL_Color cell128Color = {244,216,109};
+	SDL_Color cell256Color = {241,208,75,255};
+	SDL_Color cell512Color = {228,192,42,255};
+	SDL_Color cell1024Color = {237, 197,63,255};
+	SDL_Color cell2048Color = {236, 196, 5, 255};
+	SDL_Color cell4096Color = {60,58,50,255};
+	SDL_Color cell8192Color = {30, 29,25,255};
 
 
 
@@ -104,13 +121,15 @@ public:
 		return number;
 	}
 
-	void updateNumber(int& mergingNumbers) {
-		number = (2 * mergingNumbers);
+	void updateNumber(int& mergingNumber) {
+		number = mergingNumber;
 	}
 
 
 private:
 	int number; // Default 2 for now, add random chance for 4 later
+	MySettings& settings = MySettings::getInstance();
+
 
 
 };
@@ -147,9 +166,10 @@ public:
 
 	Cell mergeCells(Cell targetCell, Cell movingCell) {
 		// Update number of target cell
-		int newValue = targetCell.getNumber() + movingCell.getNumber();
+		if (targetCell.getNumber() == movingCell.getNumber()) {
+			int newValue = targetCell.getNumber() + movingCell.getNumber();
+		}
 		
-
 	}
 
 	void moveAndMergeAllCells() {}
@@ -288,6 +308,8 @@ public:
 	}
 
 	void renderAll() {
+
+		adjustScreen();
 	
 		renderBG();
 		renderGrid();
@@ -334,6 +356,9 @@ private:
 			}
 			else
 			{
+				SDL_SetWindowMaximumSize(window, settings.windowMaxWidth, settings.windowMaxHeight);
+				SDL_SetWindowMinimumSize(window, settings.windowMinWidth, settings.windowMinHeight);
+
 				// Create renderer for window
 				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 				if (renderer == nullptr)
@@ -352,6 +377,11 @@ private:
 		}
 
 		return success;
+	}
+
+	void adjustScreen() {
+		SDL_GetWindowSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
+
 	}
 
 	void renderBG() {
