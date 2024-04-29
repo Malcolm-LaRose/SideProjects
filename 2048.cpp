@@ -9,6 +9,8 @@
 #include <chrono>
 #include <random>
 #include <optional>
+#include <map>
+// #include <cmath>
 
 // OPENGL NOT ENABLED IN THIS VERSION | C++17 REQUIRED
 
@@ -189,7 +191,7 @@ public:
 		gridData[randRow][randCol].emplace(cell);
 	}
 
-	void moveCell(Cell& cell, int newRow, int newCol) {
+	void moveCellTo(Cell& cell, int newRow, int newCol) {
 		int oldRow = cell.getRow();
 		int oldCol = cell.getCol();
 
@@ -204,7 +206,31 @@ public:
 		
 	}
 
-	Cell mergeCells(Cell& targetCell, Cell& movingCell) {
+	void marchCell(Cell& cell, int rowInc, int colInc) {
+		// Move a cell one unit in the grid in the direction specified by rowInc and colInc
+
+		// Get current cell position
+		int cellRow = cell.getRow();
+		int cellCol = cell.getCol();
+
+		int newRow = cellRow + rowInc;
+		int newCol = cellCol + colInc;
+
+		if ((rowInc == 0) && (colInc == 0)) {
+			// Do nothing, no move requested
+			return;
+		}
+		else if ((rowInc != 0) && (colInc == 0)) {
+			// Invalid move, can't move diagonally --> Should eventually throw an exception here
+			return;
+		}
+		else {
+			moveCellTo(cell, newRow, newCol);
+		}
+		
+	}
+
+	void mergeCells(Cell& targetCell, Cell& movingCell) {
 
 
 		if (targetCell.getNumber() == movingCell.getNumber()) {
@@ -228,41 +254,92 @@ public:
 		}
 	}
 
-	void moveAndMergeAllCells() {
-		// Move cell if able
-		// Merge if able
-		// Dont move else
+	void moveAndMergeLeft() {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) { // Loop through all cells
+				
+				if (checkForCellAt(i, j)) { // If there is a cell to move
+
+					Cell& movingCell = getCellAt(i, j);
+
+					// Check cells to the left for possible merging
+					for (int k = j - 1; k >= 0; k--) {
+						if (checkForCellAt(i, k)) { // If there is a cell to the left
+							Cell& targetCell = getCellAt(i, k); // Get the cell to the left
+							mergeCells(targetCell, movingCell); // Attempt to merge the cells
+							break; // Break the loop after attempting to merge
+						}
+						else {
+							// If there is no cell to the left, move the current cell
+							moveCellTo(movingCell, i, k);
+						}
+					}
+
+
+				}
+
+			}
+		}
 	}
+
+	//void moveAndMergeAllCells(int rowInc, int colInc) {
+	//	// Move cell if able
+	//	// Merge if able
+	//	// Dont move else
+
+	//	// Move all cells in the direction specified by rowInc and colInc
+	//	// Starting point also specified by rI and cI --> if move left, start from left col, if move down start from bottom row, etc...
+	//		// Left = 0,0; Bottom = rows,0; Right = 0,cols; Top = 0,cols --> Can be simplified later by starting from 0,0 and rows,cols
+
+	//	for (int i = abs((rows - 1) * rowInc); i < rows; i += rowInc) {
+	//		
+	//		for (int j = abs((cols - 1) * colInc); j < cols; j += colInc) {
+	//			
+	//			if (getCellAt(i,j).has_value()) { // If there is a cell
+
+	//				if ()
+	//			
+	//			}
+
+	//		}
+	//	}
+
+
+	// }
 
 	std::vector<std::vector<std::optional<Cell>>> getGridData() {
 		return gridData;
 	}
 
 	bool isFull() {
-    const int capacity = rows * cols; // Total number of cells on the board
-    int filledCells = 1; // Counter for filled cells
+		const int capacity = rows * cols; // Total number of cells on the board
+		int filledCells = 1; // Counter for filled cells
 
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            if (checkForCellAt(i, j)) {
-                filledCells++; // Increment the filled cell count
-            }
-        }
-    }
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				if (checkForCellAt(i, j)) {
+					filledCells++; // Increment the filled cell count
+				}
+			}
+		}
 
-	fflush(stdout);
-    printf("%i", filledCells);
+		fflush(stdout);
+		printf("%i", filledCells);
 
 
-    if (filledCells == capacity) {
-        printf("Game over, man!");
-        return true;
-    } else {
-        return false;
-    }
+		if (filledCells == capacity) {
+			printf("Game over, man!");
+			return true;
+		}
+		
+		else {
+			return false;
+		}
 }
 
-
+	Cell& getCellAt(int row, int col) {
+		return gridData[row][col].value();
+	}
 
 private:
 	const int rows;
@@ -275,9 +352,10 @@ private:
 
 	MySettings& settings = MySettings::getInstance();
 
-	std::optional<Cell> getCellAt(int row, int col) {
+	std::optional<Cell> getPotentialCellAt(int row, int col) {
 		return gridData[row][col];
 	}
+
 
 	Cell createCell(int row, int col) {
 		// Later this can be 2 or 4 randomly
@@ -453,15 +531,34 @@ private:
 
 	}
 
+	// Define a map to map cell numbers to colors
+	std::map<int, SDL_Color> colorMap = {
+		{2, settings.cell2Color},
+		{4, settings.cell4Color},
+		{8, settings.cell8Color},
+		// Add more mappings for other numbers...
+	};
+
+	// Function to get color based on cell number
+	SDL_Color getColorForNumber(int number) {
+		// Check if the number exists in the map
+		auto it = colorMap.find(number);
+		if (it != colorMap.end()) {
+			// Return the corresponding color
+			return it->second;
+		}
+		else {
+			// Default color if number doesn't exist in map
+			exit(1);
+		}
+	}
+
 	void renderCell() {
 		const int& cellSpacing = settings.gridCellSpacing;
 		const int& cellSize = settings.gridCellSize;
 
 		const int& rows = settings.gridRows;
 		const int& cols = settings.gridCols;
-
-		// Set color for cells
-		SDL_Color cellColor = settings.cell2Color;
 
 		// Calculate total width and height of the grid
 		int totalWidth = cols * cellSize + (cols + 1) * cellSpacing;
@@ -474,6 +571,10 @@ private:
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
 				if (grid.checkForCellAt(i, j)) {
+					
+					// Set color for cells
+					SDL_Color cellColor = getColorForNumber((grid.getCellAt(i, j)).getNumber());
+
 					int topLeftX = cellSpacing * ( j + 1 ) + cellSize * j;
 					int topLeftY = cellSpacing * (i + 1) + cellSize * i;
 
@@ -625,7 +726,7 @@ public:
 					break;
 				case SDLK_LEFT:
 					// Move and merge cells left
-
+					grid.moveAndMergeLeft();
 					// grid.placeRandomCell();
 
 					break;
