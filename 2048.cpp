@@ -13,7 +13,7 @@
 // OPENGL NOT ENABLED IN THIS VERSION | C++17 REQUIRED
 
 // TO DO
-	// Make window resizeable and grid padded so it floats in the middle vertically
+	// make cells aware of their col and row
 	// Score
 	// Game
 	// Improve graphics
@@ -58,7 +58,6 @@ struct MySettings {
 	SDL_Color gridColor = { 187, 173, 160, 255 };
 
 
-
 	SDL_Color cell2Color = {233, 228, 218, 255};
 	SDL_Color cell4Color = {236,224,202,255};
 	SDL_Color cell8Color = {242,177,121,255};
@@ -88,31 +87,35 @@ private:
 class Cell { // Cells will have to be dynamically created AND DESTROYED! --> Need all constructors
 public:
 	// Constructors
-	Cell() : number(2) {}
+	Cell(int row, int col) : number(2), row(row), col(col) {}
 
-	Cell(int num) : number(num) {}
+	Cell(int num, int row, int col) : number(num), row(row), col(col) {}
 
 	// Default destructor is explicitly the default
 	~Cell() = default; 
 
-	// Copy constructor
-	Cell(const Cell& other) : number(other.number) {}
+	// Copy constructor --> Should be invoked when a cell is moved from one place to another without merging (copy init)
+	Cell(const Cell& other) : number(other.number), row(other.row), col(other.col) {}
 
 	// Copy assignment constructor
 	Cell& operator=(const Cell& other) {
 		if (this != &other) {
 			number = other.number;
+			row = other.row;
+			col = other.col;
 		}
 		return *this;
 	}
 
 	// Move constructor
-	Cell(Cell&& other) noexcept : number(std::move(other.number)) {}
+	Cell(Cell&& other) noexcept : number(std::move(other.number)), row(std::move(other.row)), col(std::move(other.col)) {}
 
 	// Move assignment operator
 	Cell& operator=(Cell&& other) noexcept {
 		if (this != &other) {
 			number = std::move(other.number);
+			row = std::move(other.row);
+			col = std::move(other.col);
 		}
 		return *this;
 	}
@@ -121,14 +124,38 @@ public:
 		return number;
 	}
 
-	void updateNumber(int& mergingNumber) {
+	void updateNumber(int mergingNumber) {
 		number = mergingNumber;
 	}
+
+	void renderNumber() {
+		
+	}
+
+	int getRow() {
+		return row;
+	}
+
+	int getCol() {
+		return col;
+	}
+
+	void setRow(int newRow) {
+		row = newRow;
+	}
+
+	void setCol(int newCol) {
+		col = newCol;
+	}
+
 
 
 private:
 	int number; // Default 2 for now, add random chance for 4 later
 	MySettings& settings = MySettings::getInstance();
+
+	int row;
+	int col;
 
 
 
@@ -158,21 +185,54 @@ public:
 			randCol = randomRowOrCol(gen);
 		} while (checkForCellAt(randRow, randCol));
 
-		Cell cell = createCell();
+		Cell cell = createCell(randRow, randCol);
 		gridData[randRow][randCol].emplace(cell);
 	}
 
-	void moveCell() {}
+	void moveCell(Cell& cell, int newRow, int newCol) {
+		int oldRow = cell.getRow();
+		int oldCol = cell.getCol();
 
-	Cell mergeCells(Cell targetCell, Cell movingCell) {
-		// Update number of target cell
+		// Change the location in gridData
+		gridData[newRow][newCol].emplace(cell);
+		gridData[oldRow][oldCol].reset();
+
+		// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
+		cell.setRow(newRow);
+		cell.setCol(newCol);
+
+		
+	}
+
+	Cell mergeCells(Cell& targetCell, Cell& movingCell) {
+
+
 		if (targetCell.getNumber() == movingCell.getNumber()) {
-			int newValue = targetCell.getNumber() + movingCell.getNumber();
+			// Merge the cells by updating the value of the first cell
+			targetCell.updateNumber((movingCell.getNumber()) * 2);
+			// Delete the second cell
+			deleteCellAt(movingCell.getRow(), movingCell.getCol());
 		}
 		
 	}
 
-	void moveAndMergeAllCells() {}
+	void deleteCellAt(int row, int col) {
+		gridData[row][col].reset();
+	}
+
+	void clearGrid() {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				deleteCellAt(i, j);
+			}
+		}
+	}
+
+	void moveAndMergeAllCells() {
+		// Move cell if able
+		// Merge if able
+		// Dont move else
+	}
 
 	std::vector<std::vector<std::optional<Cell>>> getGridData() {
 		return gridData;
@@ -219,9 +279,9 @@ private:
 		return gridData[row][col];
 	}
 
-	Cell createCell() {
+	Cell createCell(int row, int col) {
 		// Later this can be 2 or 4 randomly
-		return Cell(2);
+		return Cell(2, row, col);
 	}
 
 
@@ -401,7 +461,7 @@ private:
 		const int& cols = settings.gridCols;
 
 		// Set color for cells
-		SDL_Color cellColor = Color::getSDLColor(Color::RED);
+		SDL_Color cellColor = settings.cell2Color;
 
 		// Calculate total width and height of the grid
 		int totalWidth = cols * cellSize + (cols + 1) * cellSpacing;
@@ -544,22 +604,41 @@ public:
 
 				// printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
 
-				grid.placeRandomCell();
+				 grid.placeRandomCell();
 
 			}
 
 			else if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
 				switch (event.key.keysym.sym) {
 				case SDLK_UP:
+					// Move and merge cells up
+						// Start at leftmost column top row
+						// Loop through columns
+						// Loop through column
+							// If contains a cell, attempt to move up (don't move past grid bounds)
+								// Stop at grid bounds
+								// Compare values if next gridspace up contains a value
+									// If equal, merge, don't move otherwise
+
+					// grid.placeRandomCell();
 
 					break;
 				case SDLK_LEFT:
+					// Move and merge cells left
+
+					// grid.placeRandomCell();
 
 					break;
 				case SDLK_DOWN:
+					// Move and merge cells down
+
+					// grid.placeRandomCell();
 
 					break;
 				case SDLK_RIGHT:
+					// Move and merge cells right
+
+					// grid.placeRandomCell();
 
 					break;
 				}
