@@ -169,7 +169,7 @@ public:
 	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
 		gridData.resize(rows, std::vector<std::optional<Cell>>(cols));
 		placeRandomCell(); // Start with one cell randomly placed
-		logGridState();
+		// logGridState();
 	}
 
 	void logGridState() {
@@ -239,21 +239,12 @@ public:
 
 					if (k >= 0 && checkForCellAt(i, k)) {
 						Cell& targetCell = getCellAt(i, k);
-						bool mergeSuccessful = mergeCells(targetCell, movingCell);
-						if (mergeSuccessful) {
-							// Cell merged successfully, update the grid
-							// No need to move the cell since merging moves it automatically
-						}
+						mergeCells(targetCell, movingCell);
 					}
 				}
 			}
 		}
 	}
-
-
-
-	// I THINK THESE FUNCTIONS ARE THE PROBLEM!!
-	// Something to do with having cells of the same value on opposite sides of the same row for left and right. If 2 is in 3,0 and 3,3 and I press either left or right, both values double
 
 	void moveAndMergeRight() {
 		for (int i = 0; i < rows; i++) {
@@ -270,11 +261,53 @@ public:
 
 					if (k < cols && checkForCellAt(i, k)) {
 						Cell& targetCell = getCellAt(i, k);
-						bool mergeSuccessful = mergeCells(targetCell, movingCell);
-						if (mergeSuccessful) {
-							// Cell merged successfully, update the grid
-							// No need to move the cell since merging moves it automatically
-						}
+						mergeCells(targetCell, movingCell);
+					}
+				}
+			}
+		}
+	}
+
+	// Left and right work, not up and down tho
+
+	void moveAndMergeUp() {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				if (checkForCellAt(i, j)) {
+					Cell& movingCell = getCellAt(i, j);
+					int k = i - 1; // Index of cell up
+
+					// Move the cell as far up as possible
+					while (k >= 0 && !checkForCellAt(k, j)) {
+						moveCellTo(movingCell, k, j);
+						k--;
+					}
+
+					if (k >= 0 && checkForCellAt(k, j)) { // Merge if possible
+						Cell& targetCell = getCellAt(k, j);
+						mergeCells(targetCell, movingCell);
+					}
+				}
+			}
+		}
+	}
+
+	void moveAndMergeDown() {
+		for (int i = rows - 1; i >= 0; i--) {
+			for (int j = 0; j < cols; j++) {
+				if (checkForCellAt(i, j)) {
+					Cell& movingCell = getCellAt(i, j);
+					int k = i + 1; // Index of cell down
+
+					// Move the cell as far down as possible
+					while (k < rows && !checkForCellAt(k, j)) {
+						moveCellTo(movingCell, k, j);
+						k++;
+					}
+
+					if (k < rows && checkForCellAt(k, j)) { // Merge if possible
+						Cell& targetCell = getCellAt(k, j);
+						mergeCells(targetCell, movingCell);
 					}
 				}
 			}
@@ -354,33 +387,7 @@ private:
 		}
 	}
 
-	//{
-	//	void marchCell(Cell& cell, int rowInc, int colInc) {
-	//		// Move a cell one unit in the grid in the direction specified by rowInc and colInc
-	//
-	//		// Get current cell position
-	//		int cellRow = cell.getRow();
-	//		int cellCol = cell.getCol();
-	//
-	//		int newRow = cellRow + rowInc;
-	//		int newCol = cellCol + colInc;
-	//
-	//		if ((rowInc == 0) && (colInc == 0)) {
-	//			// Do nothing, no move requested
-	//			return;
-	//		}
-	//		else if ((rowInc != 0) && (colInc == 0)) {
-	//			// Invalid move, can't move diagonally --> Should eventually throw an exception here
-	//			return;
-	//		}
-	//		else {
-	//			moveCellTo(cell, newRow, newCol);
-	//		}
-	//
-	//	}
-	//}
-
-	bool mergeCells(Cell& targetCell, Cell& movingCell) {
+	void mergeCells(Cell& targetCell, Cell& movingCell) {
 
 
 		if (targetCell.getNumber() == movingCell.getNumber()) {
@@ -388,10 +395,10 @@ private:
 			targetCell.updateNumber((movingCell.getNumber()) * 2);
 			// Delete the second cell
 			deleteCellAt(movingCell.getRow(), movingCell.getCol());
-			return true;
+			return;
 		}
 
-		else return false;
+		else return;
 
 	}
 
@@ -753,7 +760,7 @@ public:
 				// printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
 
 				 grid.placeRandomCell();
-				 grid.logGridState();
+				 // grid.logGridState();
 
 			}
 
@@ -761,35 +768,28 @@ public:
 				switch (event.key.keysym.sym) {
 				case SDLK_UP:
 					// Move and merge cells up
-						// Start at leftmost column top row
-						// Loop through columns
-						// Loop through column
-							// If contains a cell, attempt to move up (don't move past grid bounds)
-								// Stop at grid bounds
-								// Compare values if next gridspace up contains a value
-									// If equal, merge, don't move otherwise
-
-					// grid.placeRandomCell();
+					grid.moveAndMergeUp();
+					grid.placeRandomCell();
 
 					break;
 				case SDLK_LEFT:
 					// Move and merge cells left
 					grid.moveAndMergeLeft();
-					grid.logGridState();
-					// grid.placeRandomCell();
+					// grid.logGridState();
+					grid.placeRandomCell();
 
 					break;
 				case SDLK_DOWN:
 					// Move and merge cells down
-
-					// grid.placeRandomCell();
+					grid.moveAndMergeDown();
+					grid.placeRandomCell();
 
 					break;
 				case SDLK_RIGHT:
 					// Move and merge cells right
 					grid.moveAndMergeRight();
-					grid.logGridState();
-					// grid.placeRandomCell();
+					// grid.logGridState();
+					grid.placeRandomCell();
 
 					break;
 				}
