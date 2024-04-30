@@ -86,6 +86,37 @@ private:
 
 // Put game classes here!
 
+class Score {
+public:
+
+	Score() : score(0) {}
+	
+	Score(int num) : score(num) {} // Start with the value of the first cell
+
+	void updateScore(int num) {
+		// Call me from the mergeCells function
+			// Get the value of the new cell and add it to the score
+		score += num;
+	}
+
+	int getScore() {
+		return score;
+	}
+
+	void logScore() {
+		system("cls");
+		printf("Score: %i\n", score);
+	}
+
+
+private:
+
+	int score;
+
+
+
+};
+
 class Cell { // Cells will have to be dynamically created AND DESTROYED! --> Need all constructors
 public:
 	// Constructors
@@ -166,7 +197,7 @@ private:
 class Grid {
 public:
 
-	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
+	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize), score(0) {
 		gridData.resize(rows, std::vector<std::optional<Cell>>(cols));
 		placeRandomCell(); // Start with one cell randomly placed
 		// logGridState();
@@ -361,6 +392,8 @@ private:
 
 	MySettings& settings = MySettings::getInstance();
 
+	Score score;
+
 	std::optional<Cell> getPotentialCellAt(int row, int col) {
 		return gridData[row][col];
 	}
@@ -393,8 +426,11 @@ private:
 		if (targetCell.getNumber() == movingCell.getNumber()) {
 			// Merge the cells by updating the value of the first cell
 			targetCell.updateNumber((movingCell.getNumber()) * 2);
+			// Update score
+			score.updateScore(targetCell.getNumber());
 			// Delete the second cell
 			deleteCellAt(movingCell.getRow(), movingCell.getCol());
+			score.logScore();
 			return;
 		}
 
@@ -407,30 +443,6 @@ private:
 		// Later this can be 2 or 4 randomly
 		return Cell(2, row, col);
 	}
-
-
-
-};
-
-class Score {
-public:
-
-	Score() : score(0) {}
-
-	void updateScore() {
-	// Call me from the mergeCells function
-		// Get the value of the new cell and add it to the score
-
-	}
-
-	uint64_t getScore() {
-		return score;
-	}
-
-
-private:
-
-	uint64_t score; // Unsigned 64 bit integer (yuge!)
 
 
 
@@ -752,17 +764,17 @@ public:
 				renderer->quitSDL();
 			}
 
-			else if (event.type == SDL_MOUSEBUTTONDOWN) {
-
-				// Get coordinates
-				std::pair<int, int> mousePosition = getMousePosition();
-
-				// printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
-
-				 grid.placeRandomCell();
-				 // grid.logGridState();
-
-			}
+			//else if (event.type == SDL_MOUSEBUTTONDOWN) {
+			//
+			//	// Get coordinates
+			//	std::pair<int, int> mousePosition = getMousePosition();
+			//
+			//	 printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
+			//
+			//	  grid.placeRandomCell();
+			//	  grid.logGridState();
+			//
+			//}
 
 			else if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
 				switch (event.key.keysym.sym) {
