@@ -169,6 +169,27 @@ public:
 	Grid(int cSpace, int cSize) : rows(4), cols(4), cellSpacing(cSpace), cellSize(cSize) {
 		gridData.resize(rows, std::vector<std::optional<Cell>>(cols));
 		placeRandomCell(); // Start with one cell randomly placed
+		logGridState();
+	}
+
+	void logGridState() {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				if (gridData[i][j].has_value()) {
+					// Print the value of the optional cell if it exists
+					printf("[%d]", gridData[i][j].value().getNumber());
+				}
+				else {
+					// If cell is empty, print empty brackets
+					printf("[]");
+				}
+				// Add space after each element except the last one in the row
+				if (j < cols - 1) {
+					printf(" ");
+				}
+			}
+			printf("\n"); // Move to the next row
+		}
 	}
 
 	bool checkForCellAt(int row, int col) {
@@ -204,23 +225,24 @@ public:
 	}
 
 	void moveAndMergeLeft() {
-		for (int i = 0; i < rows; i++) {
-			for (int j = 0; j < cols; j++) { // Loop through all cells
-				
-				if (checkForCellAt(i, j)) { // If there is a cell to move
-
+		for (int i = 0; i < settings.gridRows; i++) {
+			for (int j = 1; j < settings.gridCols; j++) { // Start from the second column
+				if (checkForCellAt(i, j)) {
 					Cell& movingCell = getCellAt(i, j);
+					int k = j - 1; // Index of the cell to the left
 
-					// Check cells to the left for possible merging
-					for (int k = j - 1; k >= 0; k--) {
-						if (checkForCellAt(i, k)) { // If there is a cell to the left
-							Cell& targetCell = getCellAt(i, k); // Get the cell to the left
-							mergeCells(targetCell, movingCell); // Attempt to merge the cells
-							break; // Break the loop after attempting to merge
-						}
-						else {
-							// If there is no cell to the left, move the current cell
-							moveCellTo(movingCell, i, k);
+					// Move the cell as far left as possible
+					while (k >= 0 && !checkForCellAt(i, k)) {
+						moveCellTo(movingCell, i, k); // Move the cell to the left
+						k--; // Move to the next left position
+					}
+
+					if (k >= 0 && checkForCellAt(i, k)) {
+						Cell& targetCell = getCellAt(i, k);
+						bool mergeSuccessful = mergeCells(targetCell, movingCell);
+						if (mergeSuccessful) {
+							// Cell merged successfully, update the grid
+							// No need to move the cell since merging moves it automatically
 						}
 					}
 				}
@@ -231,31 +253,33 @@ public:
 
 
 	// I THINK THESE FUNCTIONS ARE THE PROBLEM!!
+	// Something to do with having cells of the same value on opposite sides of the same row for left and right. If 2 is in 3,0 and 3,3 and I press either left or right, both values double
 
-	//void moveAndMergeRight() {
-	//	for (int i = 0; i < rows; i++) {
-	//		for (int j = cols - 1; j >= 0; j--) { // Loop through all cells from right to left
+	void moveAndMergeRight() {
+		for (int i = 0; i < rows; i++) {
+			for (int j = cols - 1; j >= 0; j--) { // Start from the second-to-last column and move leftwards
+				if (checkForCellAt(i, j)) { // If there is a cell to move
+					Cell& movingCell = getCellAt(i, j);
+					int k = j + 1; // Index of the cell to the right
 
-	//			if (checkForCellAt(i, j)) { // If there is a cell to move
+					// Move the cell as far right as possible
+					while (k < cols && !checkForCellAt(i, k)) {
+						moveCellTo(movingCell, i, k); // Move the cell to the right
+						k++; // Move to the next right position
+					}
 
-	//				Cell& movingCell = getCellAt(i, j);
-
-	//				// Check cells to the right for possible merging
-	//				for (int k = j + 1; k < cols; k++) {
-	//					if (checkForCellAt(i, k)) { // If there is a cell to the right
-	//						Cell& targetCell = getCellAt(i, k); // Get the cell to the right
-	//						mergeCells(targetCell, movingCell); // Attempt to merge the cells
-	//						break; // Break the loop after attempting to merge
-	//					}
-	//					else {
-	//						// If there is no cell to the right, move the current cell
-	//						moveCellTo(movingCell, i, k);
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
+					if (k < cols && checkForCellAt(i, k)) {
+						Cell& targetCell = getCellAt(i, k);
+						bool mergeSuccessful = mergeCells(targetCell, movingCell);
+						if (mergeSuccessful) {
+							// Cell merged successfully, update the grid
+							// No need to move the cell since merging moves it automatically
+						}
+					}
+				}
+			}
+		}
+	}
 
 
 
@@ -276,7 +300,7 @@ public:
 		}
 
 		fflush(stdout);
-		printf("%i", filledCells);
+		// printf("%i", filledCells);
 
 
 		if (filledCells == capacity) {
@@ -312,15 +336,17 @@ private:
 		int oldRow = cell.getRow();
 		int oldCol = cell.getCol();
 
-		// Change the location in gridData
-		gridData[newRow][newCol].emplace(cell);
-		deleteCellAt(oldRow, oldCol);
+		if (oldRow != newRow || oldCol != newCol) {
 
-		// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
-		cell.setRow(newRow);
-		cell.setCol(newCol);
+			// Change the location in gridData
+			gridData[newRow][newCol].emplace(cell);
+			deleteCellAt(oldRow, oldCol);
 
+			// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
+			cell.setRow(newRow);
+			cell.setCol(newCol);
 
+		}
 	}
 
 	//{
@@ -349,7 +375,7 @@ private:
 	//	}
 	//}
 
-	void mergeCells(Cell& targetCell, Cell& movingCell) {
+	bool mergeCells(Cell& targetCell, Cell& movingCell) {
 
 
 		if (targetCell.getNumber() == movingCell.getNumber()) {
@@ -357,16 +383,17 @@ private:
 			targetCell.updateNumber((movingCell.getNumber()) * 2);
 			// Delete the second cell
 			deleteCellAt(movingCell.getRow(), movingCell.getCol());
+			return true;
 		}
 
-		else return;
+		else return false;
 
 	}
 
 
 	Cell createCell(int row, int col) {
 		// Later this can be 2 or 4 randomly
-		return Cell(2, row, col);
+		return Cell(4, row, col);
 	}
 
 
@@ -721,6 +748,7 @@ public:
 				// printf("Mouse position - x: %d, y: %d\n", mousePosition.first, mousePosition.second);
 
 				 grid.placeRandomCell();
+				 grid.logGridState();
 
 			}
 
@@ -742,6 +770,7 @@ public:
 				case SDLK_LEFT:
 					// Move and merge cells left
 					grid.moveAndMergeLeft();
+					grid.logGridState();
 					// grid.placeRandomCell();
 
 					break;
@@ -753,7 +782,8 @@ public:
 					break;
 				case SDLK_RIGHT:
 					// Move and merge cells right
-					// grid.moveAndMergeRight();
+					grid.moveAndMergeRight();
+					grid.logGridState();
 					// grid.placeRandomCell();
 
 					break;
@@ -804,6 +834,7 @@ public:
 
 
 		while (!quit) {
+
 			evHandler->pollEvent();
 
 			// Big encapsulating rendering function here
