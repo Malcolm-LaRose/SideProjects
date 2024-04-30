@@ -213,7 +213,7 @@ public:
 	}
 
 	void deleteCellAt(int row, int col) {
-		gridData[row][col].reset();
+		gridData[row][col].reset(); // maybe call cell destructor instead?
 	}
 
 	void clearGrid() {
@@ -336,15 +336,20 @@ private:
 		int oldRow = cell.getRow();
 		int oldCol = cell.getCol();
 
-		if (oldRow != newRow || oldCol != newCol) {
+		if (oldRow != newRow || oldCol != newCol) { // check for valid moves
+
+			// Do a check for cells between cell and target
+
+			// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
+			cell.setRow(newRow);
+			cell.setCol(newCol); // --> ABSOLUTELY CRITICAL TO DO THIS BEFORE NEXT TWO STATEMENTS
 
 			// Change the location in gridData
 			gridData[newRow][newCol].emplace(cell);
 			deleteCellAt(oldRow, oldCol);
 
-			// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
-			cell.setRow(newRow);
-			cell.setCol(newCol);
+
+			// Do a check that gridData and cell rows/cols are identical
 
 		}
 	}
@@ -393,7 +398,7 @@ private:
 
 	Cell createCell(int row, int col) {
 		// Later this can be 2 or 4 randomly
-		return Cell(4, row, col);
+		return Cell(2, row, col);
 	}
 
 
