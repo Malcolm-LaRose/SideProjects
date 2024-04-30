@@ -25,6 +25,7 @@ std::random_device rd;
 std::mt19937 gen(rd());
 
 std::uniform_int_distribution<> randomRowOrCol(0, 3); // Forced to be safe by restricting range here
+std::uniform_real_distribution<double> random2or4(0.0, 1.0);
 
 
 struct MySettings {
@@ -223,6 +224,29 @@ public:
 		}
 	}
 
+	bool sameGridState(std::vector<std::vector<std::optional<Cell>>>& before, std::vector<std::vector<std::optional<Cell>>>& after) {
+		// Iterate over each cell in the grid
+		for (int i = 0; i < rows; ++i) {
+			for (int j = 0; j < cols; ++j) {
+				// Check if both cells are empty
+				if (!before[i][j].has_value() && !after[i][j].has_value()) {
+					continue; // Move to the next cell
+				}
+				// Check if one cell is empty while the other is not
+				if (!before[i][j].has_value() || !after[i][j].has_value()) {
+					return false;
+				}
+				// Compare the numbers in non-empty cells
+				if (before[i][j].value().getNumber() != after[i][j].value().getNumber()) {
+					return false; // Numbers are different
+				}
+			}
+		}
+
+		// All cells are the same
+		return true;
+	}
+
 	bool checkForCellAt(int row, int col) {
 		// printf("row: %i col: %i", row, col);
 		return (gridData[row][col]).has_value();
@@ -256,6 +280,9 @@ public:
 	}
 
 	void moveAndMergeLeft() {
+
+		std::vector<std::vector<std::optional<Cell>>> beforeGrid = getGridData();
+
 		for (int i = 0; i < settings.gridRows; i++) {
 			for (int j = 1; j < settings.gridCols; j++) { // Start from the second column
 				if (checkForCellAt(i, j)) {
@@ -275,9 +302,19 @@ public:
 				}
 			}
 		}
+
+		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
+
+		if (!sameGridState(beforeGrid, afterGrid)) {
+			placeRandomCell();
+		}
+
 	}
 
 	void moveAndMergeRight() {
+
+		std::vector<std::vector<std::optional<Cell>>> beforeGrid = getGridData();
+
 		for (int i = 0; i < rows; i++) {
 			for (int j = cols - 1; j >= 0; j--) { // Start from the second-to-last column and move leftwards
 				if (checkForCellAt(i, j)) { // If there is a cell to move
@@ -297,10 +334,20 @@ public:
 				}
 			}
 		}
+
+		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
+
+		if (!sameGridState(beforeGrid, afterGrid)) {
+			placeRandomCell();
+		}
+
 	}
 
 
 	void moveAndMergeUp() {
+
+		std::vector<std::vector<std::optional<Cell>>> beforeGrid = getGridData();
+
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
 				if (checkForCellAt(i, j)) {
@@ -320,9 +367,19 @@ public:
 				}
 			}
 		}
+
+		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
+
+		if (!sameGridState(beforeGrid, afterGrid)) {
+			placeRandomCell();
+		}
+
 	}
 
 	void moveAndMergeDown() {
+
+		std::vector<std::vector<std::optional<Cell>>> beforeGrid = getGridData();
+
 		for (int i = rows - 1; i >= 0; i--) {
 			for (int j = 0; j < cols; j++) {
 				if (checkForCellAt(i, j)) {
@@ -342,11 +399,18 @@ public:
 				}
 			}
 		}
+
+		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
+
+		if (!sameGridState(beforeGrid, afterGrid)) {
+			placeRandomCell();
+		}
+
 	}
 
 
 
-	std::vector<std::vector<std::optional<Cell>>> getGridData() {
+	std::vector<std::vector<std::optional<Cell>>>& getGridData() {
 		return gridData;
 	}
 
@@ -429,10 +493,21 @@ private:
 
 	}
 
+	int twoOrFour() {
+		double randomNum = random2or4(gen);
+
+		if (randomNum > 0.9) {
+			return 4;
+		}
+		else {
+			return 2;
+		}
+
+	}
 
 	Cell createCell(int row, int col) {
 		// Later this can be 2 or 4 randomly
-		return Cell(2, row, col);
+		return Cell(twoOrFour(), row, col);
 	}
 };
 
@@ -769,27 +844,27 @@ public:
 				case SDLK_UP:
 					// Move and merge cells up
 					grid.moveAndMergeUp();
-					grid.placeRandomCell();
+					// grid.placeRandomCell();
 
 					break;
 				case SDLK_LEFT:
 					// Move and merge cells left
 					grid.moveAndMergeLeft();
 					// grid.logGridState();
-					grid.placeRandomCell();
+					// grid.placeRandomCell();
 
 					break;
 				case SDLK_DOWN:
 					// Move and merge cells down
 					grid.moveAndMergeDown();
-					grid.placeRandomCell();
+					// grid.placeRandomCell();
 
 					break;
 				case SDLK_RIGHT:
 					// Move and merge cells right
 					grid.moveAndMergeRight();
 					// grid.logGridState();
-					grid.placeRandomCell();
+					// grid.placeRandomCell();
 
 					break;
 				}
