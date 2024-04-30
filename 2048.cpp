@@ -299,7 +299,6 @@ public:
 		}
 	}
 
-	// Left and right work, not up and down tho
 
 	void moveAndMergeUp() {
 		for (int i = 0; i < rows; i++) {
@@ -403,9 +402,6 @@ private:
 		int oldCol = cell.getCol();
 
 		if (oldRow != newRow || oldCol != newCol) { // check for valid moves
-
-			// Do a check for cells between cell and target
-
 			// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
 			cell.setRow(newRow);
 			cell.setCol(newCol); // --> ABSOLUTELY CRITICAL TO DO THIS BEFORE NEXT TWO STATEMENTS
@@ -413,16 +409,10 @@ private:
 			// Change the location in gridData
 			gridData[newRow][newCol].emplace(cell);
 			deleteCellAt(oldRow, oldCol);
-
-
-			// Do a check that gridData and cell rows/cols are identical
-
 		}
 	}
 
 	void mergeCells(Cell& targetCell, Cell& movingCell) {
-
-
 		if (targetCell.getNumber() == movingCell.getNumber()) {
 			// Merge the cells by updating the value of the first cell
 			targetCell.updateNumber((movingCell.getNumber()) * 2);
@@ -430,6 +420,7 @@ private:
 			score.updateScore(targetCell.getNumber());
 			// Delete the second cell
 			deleteCellAt(movingCell.getRow(), movingCell.getCol());
+			// Log score to console for now
 			score.logScore();
 			return;
 		}
@@ -443,9 +434,6 @@ private:
 		// Later this can be 2 or 4 randomly
 		return Cell(2, row, col);
 	}
-
-
-
 };
 
 class MySDL_Renderer {
