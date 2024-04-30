@@ -15,7 +15,7 @@
 // OPENGL NOT ENABLED IN THIS VERSION | C++17 REQUIRED
 
 // TO DO
-	// make cells aware of their col and row
+	// make cells aware of their col and row --> Maybe undo this? Might be causing problems
 	// Score
 	// Game
 	// Improve graphics
@@ -191,57 +191,6 @@ public:
 		gridData[randRow][randCol].emplace(cell);
 	}
 
-	void moveCellTo(Cell& cell, int newRow, int newCol) {
-		int oldRow = cell.getRow();
-		int oldCol = cell.getCol();
-
-		// Change the location in gridData
-		gridData[newRow][newCol].emplace(cell);
-		gridData[oldRow][oldCol].reset();
-
-		// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
-		cell.setRow(newRow);
-		cell.setCol(newCol);
-
-		
-	}
-
-	void marchCell(Cell& cell, int rowInc, int colInc) {
-		// Move a cell one unit in the grid in the direction specified by rowInc and colInc
-
-		// Get current cell position
-		int cellRow = cell.getRow();
-		int cellCol = cell.getCol();
-
-		int newRow = cellRow + rowInc;
-		int newCol = cellCol + colInc;
-
-		if ((rowInc == 0) && (colInc == 0)) {
-			// Do nothing, no move requested
-			return;
-		}
-		else if ((rowInc != 0) && (colInc == 0)) {
-			// Invalid move, can't move diagonally --> Should eventually throw an exception here
-			return;
-		}
-		else {
-			moveCellTo(cell, newRow, newCol);
-		}
-		
-	}
-
-	void mergeCells(Cell& targetCell, Cell& movingCell) {
-
-
-		if (targetCell.getNumber() == movingCell.getNumber()) {
-			// Merge the cells by updating the value of the first cell
-			targetCell.updateNumber((movingCell.getNumber()) * 2);
-			// Delete the second cell
-			deleteCellAt(movingCell.getRow(), movingCell.getCol());
-		}
-		
-	}
-
 	void deleteCellAt(int row, int col) {
 		gridData[row][col].reset();
 	}
@@ -274,38 +223,41 @@ public:
 							moveCellTo(movingCell, i, k);
 						}
 					}
-
-
 				}
-
 			}
 		}
 	}
 
-	//void moveAndMergeAllCells(int rowInc, int colInc) {
-	//	// Move cell if able
-	//	// Merge if able
-	//	// Dont move else
 
-	//	// Move all cells in the direction specified by rowInc and colInc
-	//	// Starting point also specified by rI and cI --> if move left, start from left col, if move down start from bottom row, etc...
-	//		// Left = 0,0; Bottom = rows,0; Right = 0,cols; Top = 0,cols --> Can be simplified later by starting from 0,0 and rows,cols
 
-	//	for (int i = abs((rows - 1) * rowInc); i < rows; i += rowInc) {
-	//		
-	//		for (int j = abs((cols - 1) * colInc); j < cols; j += colInc) {
-	//			
-	//			if (getCellAt(i,j).has_value()) { // If there is a cell
+	// I THINK THESE FUNCTIONS ARE THE PROBLEM!!
 
-	//				if ()
-	//			
+	//void moveAndMergeRight() {
+	//	for (int i = 0; i < rows; i++) {
+	//		for (int j = cols - 1; j >= 0; j--) { // Loop through all cells from right to left
+
+	//			if (checkForCellAt(i, j)) { // If there is a cell to move
+
+	//				Cell& movingCell = getCellAt(i, j);
+
+	//				// Check cells to the right for possible merging
+	//				for (int k = j + 1; k < cols; k++) {
+	//					if (checkForCellAt(i, k)) { // If there is a cell to the right
+	//						Cell& targetCell = getCellAt(i, k); // Get the cell to the right
+	//						mergeCells(targetCell, movingCell); // Attempt to merge the cells
+	//						break; // Break the loop after attempting to merge
+	//					}
+	//					else {
+	//						// If there is no cell to the right, move the current cell
+	//						moveCellTo(movingCell, i, k);
+	//					}
+	//				}
 	//			}
-
 	//		}
 	//	}
+	//}
 
 
-	// }
 
 	std::vector<std::vector<std::optional<Cell>>> getGridData() {
 		return gridData;
@@ -354,6 +306,61 @@ private:
 
 	std::optional<Cell> getPotentialCellAt(int row, int col) {
 		return gridData[row][col];
+	}
+
+	void moveCellTo(Cell& cell, int newRow, int newCol) {
+		int oldRow = cell.getRow();
+		int oldCol = cell.getCol();
+
+		// Change the location in gridData
+		gridData[newRow][newCol].emplace(cell);
+		deleteCellAt(oldRow, oldCol);
+
+		// Change the value of row and col stored in the cell --> this should eventually be the only part of this function we need, somehow take care of the rest internally
+		cell.setRow(newRow);
+		cell.setCol(newCol);
+
+
+	}
+
+	//{
+	//	void marchCell(Cell& cell, int rowInc, int colInc) {
+	//		// Move a cell one unit in the grid in the direction specified by rowInc and colInc
+	//
+	//		// Get current cell position
+	//		int cellRow = cell.getRow();
+	//		int cellCol = cell.getCol();
+	//
+	//		int newRow = cellRow + rowInc;
+	//		int newCol = cellCol + colInc;
+	//
+	//		if ((rowInc == 0) && (colInc == 0)) {
+	//			// Do nothing, no move requested
+	//			return;
+	//		}
+	//		else if ((rowInc != 0) && (colInc == 0)) {
+	//			// Invalid move, can't move diagonally --> Should eventually throw an exception here
+	//			return;
+	//		}
+	//		else {
+	//			moveCellTo(cell, newRow, newCol);
+	//		}
+	//
+	//	}
+	//}
+
+	void mergeCells(Cell& targetCell, Cell& movingCell) {
+
+
+		if (targetCell.getNumber() == movingCell.getNumber()) {
+			// Merge the cells by updating the value of the first cell
+			targetCell.updateNumber((movingCell.getNumber()) * 2);
+			// Delete the second cell
+			deleteCellAt(movingCell.getRow(), movingCell.getCol());
+		}
+
+		else return;
+
 	}
 
 
@@ -533,10 +540,18 @@ private:
 
 	// Define a map to map cell numbers to colors
 	std::map<int, SDL_Color> colorMap = {
-		{2, settings.cell2Color},
-		{4, settings.cell4Color},
-		{8, settings.cell8Color},
-		// Add more mappings for other numbers...
+	{2, settings.cell2Color},
+	{4, settings.cell4Color},
+	{8, settings.cell8Color},
+	{16, settings.cell16Color},
+	{32, settings.cell32Color},
+	{64, settings.cell64Color},
+	{128, settings.cell128Color},
+	{256, settings.cell256Color},
+	{512, settings.cell512Color},
+	{1024, settings.cell1024Color},
+	{2048, settings.cell2048Color},
+	// Add more mappings as needed for higher numbers...
 	};
 
 	// Function to get color based on cell number
@@ -738,7 +753,7 @@ public:
 					break;
 				case SDLK_RIGHT:
 					// Move and merge cells right
-
+					// grid.moveAndMergeRight();
 					// grid.placeRandomCell();
 
 					break;
