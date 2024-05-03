@@ -2,7 +2,8 @@
 #include "Color.h"
 
 #include <SDL.h>
-#include <SDL_syswm.h>
+// #include <SDL_syswm.h> --> Maybe not important?
+#include <SDL_ttf.h> // Can't tell if working?
 
 #include <cstdio>
 #include <memory>
@@ -10,15 +11,12 @@
 #include <random>
 #include <optional>
 #include <map>
-// #include <cmath>
 
 // OPENGL NOT ENABLED IN THIS VERSION | C++17 REQUIRED
 
 // TO DO
-	// make cells aware of their col and row --> Maybe undo this? Might be causing problems
 	// Score
-	// Game
-	// Improve graphics
+	// Improve graphics --> Render numbers and score
 
 
 std::random_device rd;
@@ -56,9 +54,9 @@ struct MySettings {
 	int& windowMinWidth = totalWidth;
 	int& windowMinHeight = totalHeight;
 
-	SDL_Color farBackColor = { 80, 80, 80, 100 };
-	SDL_Color backgroundColor = { 204, 192, 178, 255 };
-	SDL_Color gridColor = { 187, 173, 160, 255 };
+	SDL_Color farBackColor = { 76, 76, 76, 100 };
+	SDL_Color backgroundColor = { 202, 190, 176, 255 };
+	SDL_Color gridColor = { 175, 161, 148, 255 };
 
 
 	SDL_Color cell2Color = {233, 228, 218, 255};
@@ -72,7 +70,7 @@ struct MySettings {
 	SDL_Color cell512Color = {228,192,42,255};
 	SDL_Color cell1024Color = {237, 197,63,255};
 	SDL_Color cell2048Color = {236, 196, 5, 255};
-	SDL_Color cell4096Color = {60,58,50,255};
+	SDL_Color cell4096Color = {60,116,50,255};
 	SDL_Color cell8192Color = {30, 29,25,255};
 
 
@@ -121,15 +119,15 @@ private:
 class Cell { // Cells will have to be dynamically created AND DESTROYED! --> Need all constructors
 public:
 	// Constructors
-	Cell(int row, int col) : number(2), row(row), col(col) {}
+	Cell(int row, int col) : number(2), row(row), col(col), justMerged(false) {}
 
-	Cell(int num, int row, int col) : number(num), row(row), col(col) {}
+	Cell(int num, int row, int col) : number(num), row(row), col(col), justMerged(false) {}
 
 	// Default destructor is explicitly the default
 	~Cell() = default; 
 
 	// Copy constructor --> Should be invoked when a cell is moved from one place to another without merging (copy init)
-	Cell(const Cell& other) : number(other.number), row(other.row), col(other.col) {}
+	Cell(const Cell& other) : number(other.number), row(other.row), col(other.col), justMerged(other.justMerged) {}
 
 	// Copy assignment constructor
 	Cell& operator=(const Cell& other) {
@@ -137,12 +135,14 @@ public:
 			number = other.number;
 			row = other.row;
 			col = other.col;
+			justMerged = other.justMerged;
+
 		}
 		return *this;
 	}
 
 	// Move constructor
-	Cell(Cell&& other) noexcept : number(std::move(other.number)), row(std::move(other.row)), col(std::move(other.col)) {}
+	Cell(Cell&& other) noexcept : number(std::move(other.number)), row(std::move(other.row)), col(std::move(other.col)), justMerged(std::move(other.justMerged)) {}
 
 	// Move assignment operator
 	Cell& operator=(Cell&& other) noexcept {
@@ -150,6 +150,7 @@ public:
 			number = std::move(other.number);
 			row = std::move(other.row);
 			col = std::move(other.col);
+			justMerged = std::move(other.justMerged);
 		}
 		return *this;
 	}
@@ -182,6 +183,16 @@ public:
 		col = newCol;
 	}
 
+	bool hasMerged() {
+		return justMerged;
+	}
+
+	void youJustMerged() {
+		justMerged = true;
+	}
+
+
+
 
 
 private:
@@ -190,6 +201,8 @@ private:
 
 	int row;
 	int col;
+
+	bool justMerged;
 
 
 
@@ -624,6 +637,13 @@ private:
 				{
 					printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
 					success = false;
+				}
+
+				// Initialize SDL_ttf
+				if (TTF_Init() != 0) {
+					printf("SDL_ttf initialization failed");
+					SDL_Quit();
+					return 1;
 				}
 
 
