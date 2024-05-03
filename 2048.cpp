@@ -163,12 +163,6 @@ public:
 		number = mergingNumber;
 	}
 
-	void renderNumber(int num) {
-
-
-		
-	}
-
 	int getRow() {
 		return row;
 	}
@@ -611,6 +605,7 @@ public:
 		renderBG();
 		renderGrid();
 		renderCell();
+		// renderNumber();
 
 
 		presentRender();
@@ -729,6 +724,17 @@ private:
 		}
 	}
 
+	void renderNumber(int num, int xPos, int yPos) {
+		// Shapes::Text numberText(num, 100, { 100, 100 });
+		// numberText.render(renderer);
+
+		int fontSizeLarge = 100;
+
+		Shapes::Text numToRender(num, fontSizeLarge, { xPos,yPos });
+		numToRender.render(renderer);
+
+	}
+
 	void renderCell() {
 		const int& cellSpacing = settings.gridCellSpacing;
 		const int& cellSize = settings.gridCellSize;
@@ -747,6 +753,8 @@ private:
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
 				if (grid.checkForCellAt(i, j)) {
+
+					Cell& cell = grid.getCellAt(i,j);
 					
 					// Set color for cells
 					SDL_Color cellColor = getColorForNumber((grid.getCellAt(i, j)).getNumber());
@@ -761,6 +769,11 @@ private:
 
 					SDL_SetRenderDrawColor(renderer, cellColor.r, cellColor.g, cellColor.b, cellColor.a);
 					SDL_RenderFillRect(renderer, &cellRect);
+
+					// Place text here
+					renderNumber(cell.getNumber(),topLeftX+paddingWidth,topLeftY+paddingHeight);
+
+
 				}
 			}
 		}
