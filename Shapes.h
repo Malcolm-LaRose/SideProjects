@@ -7,6 +7,7 @@
 #include "color.h"
 
 #include <SDL.h>
+#include <SDL_ttf.h>
 #include <vector>
 
 // Problem: SDL only offers Points and Rectangles, I'd like to extend that for more shapes
@@ -24,6 +25,7 @@ namespace Shapes {
 
 
 	class Renderable {}; // Interface to pass shapes to a separate SDL renderer or rendering class --> This shouldn't worry about the details of the rendering, just how to do it based on the info provided --> abstract class?
+
 
 	class Shape : Renderable {
 	public:
@@ -53,8 +55,9 @@ namespace Shapes {
 
 
 	protected:
-		Point pnt; // Point where shape will be rendered
 		SDL_Color color; // All shapes have a color
+		Point pnt; // Point where shape will be rendered
+
 
 
 	}; // Base class for shapes
@@ -73,7 +76,70 @@ namespace Shapes {
 	};
 
 
-	class Text : Renderable {}; // Simple text
+	class Text : Renderable {
+	public:
+
+		Text() : txt("404, text not found..."), fontSize(100), position({500,500}), color(Color::getSDLColor(Color::RED)) {}
+
+		Text(const std::string& text, const std::string& fontPath, int fontSize, Point position)
+			: txt(text), fontPath(fontPath), fontSize(fontSize), position(position), color(Color::getSDLColor(Color::WHITE)) {}
+
+		void setColor(SDL_Color color) {
+			color = color;
+		}
+
+		void setText(std::string& text) {
+			text = text;
+		}
+
+		void render(SDL_Renderer* renderer) const {
+			// Open the font
+			TTF_Font* font = TTF_OpenFont(fontPath.c_str(), fontSize);
+			if (!font) {
+				// Handle error, font not loaded
+				return;
+			}
+
+			// Create surface from text
+			SDL_Surface* surface = TTF_RenderText_Solid(font, txt.c_str(), color);
+			if (!surface) {
+				// Handle error, text not rendered
+				TTF_CloseFont(font);
+				return;
+			}
+
+			// Create texture from surface
+			SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+			if (!texture) {
+				// Handle error, texture not created
+				SDL_FreeSurface(surface);
+				TTF_CloseFont(font);
+				return;
+			}
+
+			// Set rendering position
+			SDL_Rect dstRect = { position.x, position.y, surface->w, surface->h };
+
+			// Render texture
+			SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
+
+			// Clean up
+			SDL_DestroyTexture(texture);
+			SDL_FreeSurface(surface);
+			TTF_CloseFont(font);
+		}
+
+
+
+	private:
+		std::string txt;
+		std::string fontPath;
+		int fontSize;
+		Point position;
+		SDL_Color color;
+
+
+	}; // Simple text
 
 
 	class Rectangle : public Shape {
