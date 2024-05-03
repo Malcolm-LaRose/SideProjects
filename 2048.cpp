@@ -16,7 +16,8 @@
 
 // TO DO
 	// Score
-	// Improve graphics --> Render numbers and score
+	// Improve graphics --> Align numbers and render score
+	// Statically link to share with friends
 
 
 std::random_device rd;
@@ -453,6 +454,7 @@ public:
 
 		if (filledCells == capacity) {
 			printf("Game over, man!");
+			system("pause");
 			return true;
 		}
 		
@@ -605,7 +607,6 @@ public:
 		renderBG();
 		renderGrid();
 		renderCell();
-		// renderNumber();
 
 
 		presentRender();
@@ -730,7 +731,7 @@ private:
 
 		int fontSizeLarge = 100;
 
-		Shapes::Text numToRender(num, fontSizeLarge, { xPos,yPos });
+		Shapes::Text numToRender(num, fontSizeLarge, { xPos + (settings.gridCellSize / 2), yPos + (settings.gridCellSize / 2) });
 		numToRender.render(renderer);
 
 	}
@@ -933,6 +934,8 @@ public:
 
 		}
 	}
+
+	bool playAgain() {}
 
 
 private:
