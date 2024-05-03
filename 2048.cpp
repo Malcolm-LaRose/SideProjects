@@ -73,7 +73,7 @@ struct MySettings {
 	SDL_Color cell4096Color = {60,116,50,255};
 	SDL_Color cell8192Color = {30, 29,25,255};
 
-
+	SDL_Color numberColor = { 245,245,250,255 };
 
 	SDL_Color scoreColor = {};
 
@@ -163,7 +163,9 @@ public:
 		number = mergingNumber;
 	}
 
-	void renderNumber() {
+	void renderNumber(int num) {
+
+
 		
 	}
 
@@ -189,6 +191,10 @@ public:
 
 	void youJustMerged() {
 		justMerged = true;
+	}
+
+	void resetMerge() {
+		justMerged = false;
 	}
 
 
@@ -316,6 +322,8 @@ public:
 			}
 		}
 
+		resetCellMergeFlag();
+
 		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
 
 		if (!sameGridState(beforeGrid, afterGrid)) {
@@ -347,6 +355,8 @@ public:
 				}
 			}
 		}
+
+		resetCellMergeFlag();
 
 		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
 
@@ -381,6 +391,8 @@ public:
 			}
 		}
 
+		resetCellMergeFlag();
+
 		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
 
 		if (!sameGridState(beforeGrid, afterGrid)) {
@@ -412,6 +424,8 @@ public:
 				}
 			}
 		}
+
+		resetCellMergeFlag();
 
 		std::vector<std::vector<std::optional<Cell>>> afterGrid = getGridData();
 
@@ -489,8 +503,18 @@ private:
 		}
 	}
 
+	void resetCellMergeFlag() {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				if (gridData[i][j].has_value()) {
+					gridData[i][j].value().resetMerge();
+				}
+			}
+		}
+	}
+
 	void mergeCells(Cell& targetCell, Cell& movingCell) {
-		if (targetCell.getNumber() == movingCell.getNumber()) {
+		if ((targetCell.getNumber() == movingCell.getNumber()) && (!targetCell.hasMerged())) {
 			// Merge the cells by updating the value of the first cell
 			targetCell.updateNumber((movingCell.getNumber()) * 2);
 			// Update score
@@ -499,6 +523,7 @@ private:
 			deleteCellAt(movingCell.getRow(), movingCell.getCol());
 			// Log score to console for now
 			score.logScore();
+			targetCell.youJustMerged();
 			return;
 		}
 
@@ -685,6 +710,8 @@ private:
 	{512, settings.cell512Color},
 	{1024, settings.cell1024Color},
 	{2048, settings.cell2048Color},
+	{4096, settings.cell4096Color},
+	{8192, settings.cell8192Color},
 	// Add more mappings as needed for higher numbers...
 	};
 
