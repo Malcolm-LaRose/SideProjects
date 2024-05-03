@@ -108,6 +108,11 @@ public:
 		printf("Score: %i\n", score);
 	}
 
+	void resetScore() {
+		system("cls");
+		score = 0;
+	}
+
 
 private:
 
@@ -291,6 +296,7 @@ public:
 				deleteCellAt(i, j);
 			}
 		}
+		placeRandomCell();
 	}
 
 	void moveAndMergeLeft() {
@@ -434,6 +440,10 @@ public:
 
 	std::vector<std::vector<std::optional<Cell>>>& getGridData() {
 		return gridData;
+	}
+
+	Score& getScore() {
+		return score;
 	}
 
 	bool isFull() {
@@ -931,11 +941,22 @@ public:
 				}
 			}
 
+			playAgain();
 
 		}
 	}
 
-	bool playAgain() {}
+	void playAgain() {
+		if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
+			switch (event.key.keysym.sym) {
+			case SDLK_r:
+				grid.clearGrid();
+				grid.getScore().resetScore();
+				break;
+			
+			}
+		}
+	}
 
 
 private:
