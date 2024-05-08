@@ -24,7 +24,71 @@ Shapes::Point screenCenter = { screenWidth / 2, screenHeight / 2 };
 
 const int desiredFPS = 60;
 
-class MyTimer {};
+class MyTimer_us {
+public:
+
+	MyTimer_us() : // Multi line constructor
+	startTime(std::chrono::steady_clock::now()), // Init with current time --> Class should be init'ed right before main loop
+	frameBeginTime(std::chrono::steady_clock::now()), // Init with current time, will be changed immediately
+	frameEndTime(std::chrono::steady_clock::now()) // Init with current time, will be changed immediately
+	{
+		outputTime = startTime;
+	}
+
+
+	std::chrono::steady_clock::time_point t_now() {
+		return std::chrono::steady_clock::now(); // Helper function to shorten this line
+	}
+
+	std::chrono::duration<double, std::micro> getTotalTimeElapsed() {
+		return t_now() - startTime; // Time between now and program start
+	}
+
+	std::chrono::duration<double, std::micro>  getOutputTimeElapsed() {
+		return t_now() - outputTime;
+	}
+
+
+	void markFrameBeginTime() {
+		frameBeginTime = t_now();
+	}
+	void markFrameEndTime() {
+		frameEndTime = t_now();
+	}
+
+	std::chrono::duration<double, std::micro> getFrameDuration() {
+		return frameDuration;
+	}
+
+	void logFPS() {
+		computeFrameDuration();
+
+		auto currentTime = t_now();
+		if (currentTime - outputTime >= std::chrono::microseconds(250000)) {
+			system("cls");
+			std::cout << "\rFPS: " << (1000000.0 / frameDuration.count()) << std::endl; // Print FPS
+			std::cout << "\rFRAME TIME: " << frameDuration.count() << std::flush; // Print frame time
+			std::cout << std::endl; // Move to the next line
+
+			outputTime = currentTime; // Update output time
+		}
+	}
+
+
+private:
+
+	std::chrono::steady_clock::time_point startTime;
+	std::chrono::steady_clock::time_point outputTime;
+	std::chrono::steady_clock::time_point frameBeginTime;
+	std::chrono::steady_clock::time_point frameEndTime;
+
+	std::chrono::duration<double, std::micro> frameDuration;
+
+	void computeFrameDuration() {
+		frameDuration = frameEndTime - frameBeginTime;
+	}
+
+};
 
 // SDL Functions
 
@@ -55,14 +119,14 @@ void presentRender(SDL_Renderer* renderer) { // Or UpdateWindow?
 	SDL_RenderPresent(renderer);
 
 
-	// Calculate time taken to render this frame
-	auto endTime = std::chrono::steady_clock::now();
-	std::chrono::duration<double, std::milli> frameTime = endTime - startTime;
-
-	// If frame rendering took less time than desired frame rate, introduce a delay --> FRAME CAP
-	if (frameTime.count() < (1000.0 / desiredFPS)) {
+	 // Calculate time taken to render this frame
+	 auto endTime = std::chrono::steady_clock::now();
+	 std::chrono::duration<double, std::milli> frameTime = endTime - startTime;
+	
+	 // If frame rendering took less time than desired frame rate, introduce a delay --> FRAME CAP I HAVE NOT FIGURED OUT HOW TO  UNCAP YET
+	 if (frameTime.count() < (1000.0 / desiredFPS)) {
 		SDL_Delay((Uint32)((1000.0 / desiredFPS) - frameTime.count()));
-	}
+	 }
 }
 
 // My functions
@@ -149,33 +213,42 @@ int main(int argc, char* argv[]) {
 		window = nullptr;
 	}
 
+
+	MyTimer_us myTimer;
+
+
 	bool quit = false;
 
-	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now(); // Time the program starts the main loop
+	// std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now(); // Time the program starts the main loop
 
 	while (!quit) {
-		std::chrono::steady_clock::time_point frameBegin = std::chrono::steady_clock::now();
+		// std::chrono::steady_clock::time_point frameBegin = std::chrono::steady_clock::now();
+		myTimer.markFrameBeginTime();
 
 		pollEvent(event);
 		defaultRender(renderer);
 
-		std::chrono::steady_clock::time_point frameEnd = std::chrono::steady_clock::now();
-		std::chrono::duration<double, std::micro> frameTime = (frameEnd - frameBegin);
+		myTimer.markFrameEndTime();
 
-		std::chrono::duration<double, std::micro> now = (std::chrono::steady_clock::now() - startTime);
+		myTimer.logFPS();
 
-		if (now.count() - frameTime.count() >= 250000) { // Check if 1/4 second has elapsed
-			if (frameTime.count() <= 1) {
-				std::cout << "\rFPS: >1000000" << std::flush;
-			}
-			else {
-				system("cls");
-				std::cout << "\rFPS: " << (1000000.0 / frameTime.count()) << std::endl; // Print FPS
-				std::cout << "\rFRAME TIME: " << frameTime.count() << std::flush; // Print frame time
-				std::cout << std::endl; // Move to the next line
-			}
-			startTime = std::chrono::steady_clock::now(); // Reset the start time for the next second
-		}
+		// std::chrono::steady_clock::time_point frameEnd = std::chrono::steady_clock::now();
+		// std::chrono::duration<double, std::micro> frameTime = (frameEnd - frameBegin);
+		//
+		// std::chrono::duration<double, std::micro> now = myTimer.getTotalTimeElapsed(); // really total elapsed time since start
+		//
+		//if (now.count() - myTimer.computeFrameDuration().count() >= 250000) { // Check if 1/4 second has elapsed
+		//	if (frameTime.count() <= 1) {
+		//		std::cout << "\rFPS: >1000000" << std::flush;
+		//	}
+		//	else {
+		//		system("cls");
+		//		std::cout << "\rFPS: " << (1000000.0 / frameTime.count()) << std::endl; // Print FPS
+		//		std::cout << "\rFRAME TIME: " << frameTime.count() << std::flush; // Print frame time
+		//		std::cout << std::endl; // Move to the next line
+		//	}
+		//	startTime = std::chrono::steady_clock::now(); // Reset the start time for the next second
+		//}
 
 		if (SDL_QuitRequested()) {
 			quit = true;
