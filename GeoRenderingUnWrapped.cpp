@@ -1,5 +1,6 @@
 #include "Shapes.h"
 #include "Color.h"
+#include "Timer.h"
 
 #include <SDL.h>
 #include <SDL_ttf.h>
@@ -7,10 +8,10 @@
 
 #include <stdio.h>
 #include <chrono>
-
-
-// DO THIS FIRST PLEASE, TRUST PAST ME :D
-// Fuck SDL in the class! 
+#include <sstream>
+#include <iostream>
+#include <thread>
+#include <windows.h>
 
 
 const int InitialScreenWidth = 1920;
@@ -21,7 +22,14 @@ int screenHeight = InitialScreenHeight;
 
 Shapes::Point screenCenter = { screenWidth / 2, screenHeight / 2 };
 
-const int desiredFPS = 180;
+const int desiredFPS = 360;
+
+Uint32 myTime = 0;
+
+
+// Calculate time taken to render this frame
+
+
 
 
 
@@ -34,9 +42,10 @@ void pollEvent(SDL_Event& event) {
 	while (SDL_PollEvent(&event) != 0) {
 
 		// Log event type
-		printf("Event type: %d\n", event.type);
+		// printf("Event type: %d\n", event.type);
 
 		if (event.type == SDL_QUIT) {
+			SDL_Quit();
 			exit(0);
 		}
 
@@ -58,13 +67,11 @@ void presentRender(SDL_Renderer* renderer) { // Or UpdateWindow?
 	auto endTime = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> frameTime = endTime - startTime;
 
-	// If frame rendering took less time than desired frame rate, introduce a delay
+	// If frame rendering took less time than desired frame rate, introduce a delay --> FRAME CAP
 	if (frameTime.count() < (1000.0 / desiredFPS)) {
 		SDL_Delay((Uint32)((1000.0 / desiredFPS) - frameTime.count()));
 	}
 }
-
-
 
 // My functions
 
@@ -89,6 +96,9 @@ void defaultRender(SDL_Renderer* renderer) {
 }
 
 
+void logFPS() {}
+
+
 
 
 int main(int argc, char* argv[]) {
@@ -98,6 +108,8 @@ int main(int argc, char* argv[]) {
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
 	SDL_Event event{}; // Not sure what list initalization does here but it prevents VS from complaining
+
+	std::stringstream timeText;
 
 	// Init SDL
 
@@ -114,7 +126,7 @@ int main(int argc, char* argv[]) {
 	{
 
 		// Create window
-		window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, InitialScreenWidth, InitialScreenHeight, SDL_WINDOW_SHOWN );
+		window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, InitialScreenWidth, InitialScreenHeight, SDL_WINDOW_SHOWN);
 		if (window == NULL)
 		{
 			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -130,7 +142,12 @@ int main(int argc, char* argv[]) {
 				success = false;
 			}
 
-
+			// Initialize SDL_ttf
+			else if (TTF_Init() != 0) {
+				printf("SDL_ttf initialization failed");
+				SDL_Quit();
+				return 1;
+			}
 		}
 	}
 
@@ -143,17 +160,35 @@ int main(int argc, char* argv[]) {
 
 	bool quit = false;
 
-	while (!quit) {
-		pollEvent(event);
+	double startTime = SDL_GetTicks(); // Time the program starts the main loop
+	double prevFrameTime = 0;
 
+	while (!quit) {
+		double frameBegin = SDL_GetTicks();
+
+		pollEvent(event);
 		defaultRender(renderer);
-		// Check if quit event occurred
+
+		double frameEnd = SDL_GetTicks();
+		double frameTime = frameEnd - frameBegin;
+
+		if (SDL_GetTicks() - startTime >= 250) { // Check if one second has elapsed
+			if (frameTime <= 1) {
+				std::cout << "\rFPS: >1000" << std::flush;
+			}
+			else {
+				system("cls");
+				std::cout << "\rFPS: " << (1000.0 / frameTime) << std::endl; // Print FPS
+				std::cout << "\rFRAME TIME: " << frameTime << std::flush; // Print frame time
+				std::cout << std::endl; // Move to the next line
+			}
+			startTime = SDL_GetTicks(); // Reset the start time for the next second
+		}
+
 		if (SDL_QuitRequested()) {
 			quit = true;
 		}
-
 	}
-
 
 	return 0;
 }
