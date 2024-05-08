@@ -24,16 +24,6 @@ Shapes::Point screenCenter = { screenWidth / 2, screenHeight / 2 };
 
 const int desiredFPS = 360;
 
-Uint32 myTime = 0;
-
-
-// Calculate time taken to render this frame
-
-
-
-
-
-
 // SDL Functions
 
 void pollEvent(SDL_Event& event) {
@@ -75,28 +65,27 @@ void presentRender(SDL_Renderer* renderer) { // Or UpdateWindow?
 
 // My functions
 
+void movingSquare(SDL_Renderer* renderer) { // Static for now but should be moveable next
+	double size = 100;
+
+	Shapes::Point sqPos = {screenCenter.x - (size/2), screenCenter.y - (size/2)};
+	Shapes::Square::Rectangle sq(sqPos, size, true);
+
+	sq.setColor(Color::getSDLColor(Color::PHSORNG));
+
+	sq.render(renderer);
+}
+
 void defaultRender(SDL_Renderer* renderer) {
 
 	SDL_SetRenderDrawColor(renderer, 80, 80, 88, 255); // Background 
 	SDL_RenderClear(renderer);
 
-	// Rendering other stuff
-	int size = 100;
-
-	Shapes::Point rectPos{ (screenWidth - size) / 2, (screenHeight - size) / 2 }; // Top left of rectangle with size 100 centered on the screen center
-	Shapes::Square::Rectangle sq(rectPos, size, true);
-	sq.setColor(Color::getSDLColor(Color::MAGENTA));
-	sq.render(renderer);
-
-	sq.setColor(Color::getSDLColor(Color::PHSORNG));
-	sq.render(renderer);
+	movingSquare(renderer);
 
 
 	presentRender(renderer);
 }
-
-
-void logFPS() {}
 
 
 
