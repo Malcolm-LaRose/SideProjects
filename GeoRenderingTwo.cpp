@@ -22,8 +22,10 @@ struct MySettings {
 		return instance; // Returns a static reference to the MySettings struct
 	}
 
-	const int initScreenWidth = 1920;
-	const int initScreenHeight = 1080;
+	const float initScreenWidth = 1920.0;
+	const float initScreenHeight = 1080.0;
+
+	const Shapes::Point screenCenter = { initScreenWidth / 2 , initScreenHeight / 2 };
 
 	const std::string windowTitle = "MyWindow";
 
@@ -32,15 +34,39 @@ struct MySettings {
 	const int frameRateCap = 600;
 
 
+
+
 };
 
-class MyObject {};
+class MyDefaultObject {
+public:
+	MyDefaultObject() : size(200), defaultRect({ settings.screenCenter.x - (size / 2), settings.screenCenter.y - (size / 2) }),
+		rectPos({ settings.screenCenter.x - (size / 2), settings.screenCenter.y - (size / 2) }),
+		sq(rectPos, size, true) {
+		defaultRectColor = Color::getSDLColor(Color::PHSORNG);
+		sq.setColor(defaultRectColor);
+	}
+
+	void render(SDL_Renderer* renderer) {
+		sq.render(renderer);
+	}
+
+private:
+	const MySettings& settings = MySettings::getInstance();
+	float size;
+	SDL_Color defaultRectColor;
+	SDL_FRect defaultRect;
+	Shapes::Point rectPos;
+	Shapes::Square::Rectangle sq;
+};
+
 
 class MySDLWrapper { // Should be turned into GameX or SimX when implemented
 public:
 
 	MySDLWrapper() : screenWidth(settings.initScreenWidth), screenHeight(settings.initScreenHeight) {
 		init(); // Automatically runs init when instantiating MySDLWrapper
+
 	}
 
 
@@ -123,9 +149,10 @@ public:
 
 	void render() {
 		SDL_RenderClear(renderer);
+		renderBG();
 
 		// Add stuff to render
-
+		defaultRectangle.render(renderer);
 
 		SDL_RenderPresent(renderer);
 
@@ -159,8 +186,26 @@ private:
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
 
+	MyDefaultObject defaultRectangle;
+	
+
 	int screenWidth; // Can change with user input
 	int screenHeight;
+
+	void renderBG() {
+		SDL_RenderClear(renderer);
+
+		Shapes::Point screenTopLeft{ 0, 0 };
+		Shapes::Rectangle background(screenTopLeft, screenWidth, screenHeight, true);
+		background.setColor(settings.bgColor);
+
+		background.render(renderer);
+
+	}
+
+	void defaultRender() {
+		
+	}
 
 
 
@@ -172,13 +217,17 @@ private:
 };
 
 
-Uint32 frameStart = 0;
-int frameTime = 0;
+
+
+
 
 
 int main(int argc, char* argv[]) {
 
 	// Object Instantiation
+
+	Uint32 frameStart = 0;
+	int frameTime = 0;
 
 	const MySettings& settings = MySettings::getInstance();
 
@@ -222,4 +271,5 @@ int main(int argc, char* argv[]) {
 	wrapper = nullptr;
 
 	return 0;
+
 }
