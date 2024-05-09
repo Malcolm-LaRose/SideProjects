@@ -23,28 +23,11 @@ public:
 	}
 
 
-	std::chrono::steady_clock::time_point t_now() {
-		return std::chrono::steady_clock::now(); // Helper function to shorten this line
-	}
-
-	std::chrono::duration<double, std::micro> getTotalTimeElapsed() {
-		return t_now() - startTime; // Time between now and program start
-	}
-
-	std::chrono::duration<double, std::micro>  getOutputTimeElapsed() {
-		return t_now() - outputTime;
-	}
-
-
 	void markFrameBeginTime() {
 		frameBeginTime = t_now();
 	}
 	void markFrameEndTime() {
 		frameEndTime = t_now();
-	}
-
-	std::chrono::duration<double, std::micro> getFrameDuration() {
-		return frameDuration;
 	}
 
 	void logFPS() {
@@ -73,6 +56,18 @@ private:
 
 	void computeFrameDuration() {
 		frameDuration = frameEndTime - frameBeginTime;
+	}
+
+	std::chrono::steady_clock::time_point t_now() {
+		return std::chrono::steady_clock::now(); // Helper function to shorten this line
+	}
+
+	std::chrono::duration<double, std::micro> getTotalTimeElapsed() {
+		return t_now() - startTime; // Time between now and program start
+	}
+
+	std::chrono::duration<double, std::micro>  getOutputTimeElapsed() {
+		return t_now() - outputTime;
 	}
 
 };
