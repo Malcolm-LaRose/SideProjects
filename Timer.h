@@ -11,108 +11,70 @@
 #include <thread>
 
 
-class MyTimer {
+class MyTimer_us {
 public:
-	// Default Constructor
-	MyTimer() : startTime(std::chrono::high_resolution_clock::now()), isStarted(false) {}
 
-
-
-	void start() {
-		isStarted = true;
-
-		startTime = std::chrono::high_resolution_clock::now();
+	MyTimer_us() : // Multi line constructor
+		startTime(std::chrono::steady_clock::now()), // Init with current time --> Class should be init'ed right before main loop
+		frameBeginTime(std::chrono::steady_clock::now()), // Init with current time, will be changed immediately
+		frameEndTime(std::chrono::steady_clock::now()) // Init with current time, will be changed immediately
+	{
+		outputTime = startTime;
 	}
 
-	void stop() {
-		isStarted = false;
 
-		// startTime = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point t_now() {
+		return std::chrono::steady_clock::now(); // Helper function to shorten this line
 	}
 
-	std::chrono::milliseconds getElapsedTimeChrono() {
-	
-		if (isStarted) {
-			auto now = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime);
+	std::chrono::duration<double, std::micro> getTotalTimeElapsed() {
+		return t_now() - startTime; // Time between now and program start
+	}
 
-			return duration;
+	std::chrono::duration<double, std::micro>  getOutputTimeElapsed() {
+		return t_now() - outputTime;
+	}
+
+
+	void markFrameBeginTime() {
+		frameBeginTime = t_now();
+	}
+	void markFrameEndTime() {
+		frameEndTime = t_now();
+	}
+
+	std::chrono::duration<double, std::micro> getFrameDuration() {
+		return frameDuration;
+	}
+
+	void logFPS() {
+		computeFrameDuration();
+
+		auto currentTime = t_now();
+		if (currentTime - outputTime >= std::chrono::microseconds(250000)) {
+			system("cls");
+			std::cout << "\rFPS: " << (1000000.0 / frameDuration.count()) << std::endl; // Print FPS
+			std::cout << "\rFRAME TIME: " << frameDuration.count() << std::flush; // Print frame time
+			std::cout << std::endl; // Move to the next line
+
+			outputTime = currentTime; // Update output time
 		}
 	}
-
-	uint32_t getElapsedTimeInt() {
-	
-		if (isStarted) {
-			auto now = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime);
-
-			return static_cast<uint32_t>(duration.count());
-		}
-
-		return 0;
-	
-	}
-
-	bool started() {
-		return isStarted;
-	}
-
-	void now() {
-		
-		startTime = std::chrono::high_resolution_clock::now();
-
-	}
-
 
 
 private:
-	bool isStarted;
-	std::chrono::time_point<std::chrono::high_resolution_clock> startTime; // Time point??
 
-	// uint32_t elapsedTimeInt
-	// std::chrono::milliseconds elapsedTimeChrono // --> More literal number with extra steps 
+	std::chrono::steady_clock::time_point startTime;
+	std::chrono::steady_clock::time_point outputTime;
+	std::chrono::steady_clock::time_point frameBeginTime;
+	std::chrono::steady_clock::time_point frameEndTime;
+
+	std::chrono::duration<double, std::micro> frameDuration;
+
+	void computeFrameDuration() {
+		frameDuration = frameEndTime - frameBeginTime;
+	}
 
 };
-
-//MyTimer initTimer() {
-//	MyTimer timer;
-//	timer.start();
-//
-//	return timer;
-//
-//}
-
-
-
-//int main() {
-//
-//	MyTimer timer;
-//
-//	bool quit = false;
-//	std::stringstream output;
-//
-//	int countedFrames = 0;
-//	timer.start();
-//	double avgFPS = 0;
-//
-//	while (!quit) {
-//
-//		auto elapsedTime = timer.getElapsedTimeChrono().count();
-//		
-//		// Update average FPS every 1/5 second
-//		if (elapsedTime >= 200) {
-//			avgFPS = countedFrames / elapsedTime;
-//			countedFrames = 0;
-//			timer.start();
-//
-//			std::cout << "\rAvg FPS: " << (avgFPS) << std::flush;
-//		}
-//
-//		countedFrames++;
-//
-//	}
-//
-//	return 0;
-//}
 
 #endif // TIMER_H
