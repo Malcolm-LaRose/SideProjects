@@ -29,6 +29,8 @@ struct MySettings {
 
 	const SDL_Color bgColor = Color::getSDLColor(Color::EIGENGRAU);
 
+	const int frameRateCap = 60;
+
 
 };
 
@@ -55,7 +57,7 @@ public:
 		{
 
 			// Create window
-			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
+			window = SDL_CreateWindow("SDL Playground", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
 			if (window == NULL)
 			{
 				printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -112,7 +114,13 @@ public:
 	
 	}
 
-	void update() {}
+	void update() {
+		count++; // Game frame counter
+		// std::cout << count << std::endl;
+
+
+	
+	}
 
 	void render() {
 		SDL_RenderClear(renderer);
@@ -148,6 +156,8 @@ private:
 	int screenWidth; // Can change with user input
 	int screenHeight;
 
+	uint64_t count = 0;
+
 
 	// Internal member functions
 
@@ -168,19 +178,27 @@ int main(int argc, char* argv[]) {
 
 	wrapper = new MySDLWrapper;
 
+	MyTimer_us* timer = nullptr;
+
+	timer = new MyTimer_us;
+
 
 	// Main loop
 	while (wrapper->isRunning()) {
+		timer->markFrameBeginTime();
 	
-		wrapper->handleEvents();
-		wrapper->update();
-		wrapper->render();
+		wrapper->handleEvents(); // Event handling
+		wrapper->update(); // Game logic
+		wrapper->render(); // Rendering
 
-	
+		timer->markFrameEndTime();
+		timer->logFPS();
 	}
 
 	// Quit
 	wrapper->clean();
+	timer = nullptr;
+	wrapper = nullptr;
 
 	return 0;
 }
