@@ -9,6 +9,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <vector>
+#include <string>
 
 // Problem: SDL only offers Points and Rectangles, I'd like to extend that for more shapes
 // NOT TRUE: There are other geometry rendering functions, need to investigate those
@@ -79,10 +80,13 @@ namespace Shapes {
 	class Text : Renderable {
 	public:
 
-		Text() : txt("404, text not found..."), fontSize(100), position({500,500}), color(Color::getSDLColor(Color::RED)) {}
+		Text() : txt("404, text not found..."), fontPath(".\\Montserrat-Regular.ttf"), fontSize(100), position({500,500}), color(Color::getSDLColor(Color::RED)) {}
 
-		Text(const std::string& text, const std::string& fontPath, int fontSize, Point position)
-			: txt(text), fontPath(fontPath), fontSize(fontSize), position(position), color(Color::getSDLColor(Color::WHITE)) {}
+		Text(const std::string& text, int fontSize, Point position)
+			: txt(text), fontPath(".\\Montserrat-Regular.ttf"), fontSize(fontSize), position(position), color(Color::getSDLColor(Color::WHITE)) {}
+
+		Text(const int text, int fontSize, Point position)
+			: txt(std::to_string(text)), fontPath(".\\Montserrat-Regular.ttf"), fontSize(fontSize), position(position), color(Color::getSDLColor(Color::WHITE)) {}
 
 		void setColor(SDL_Color color) {
 			color = color;
@@ -118,7 +122,7 @@ namespace Shapes {
 			}
 
 			// Set rendering position
-			SDL_Rect dstRect = { position.x, position.y, surface->w, surface->h };
+			SDL_Rect dstRect = { position.x - surface->w/2, position.y - surface->h/2, surface->w, surface->h };
 
 			// Render texture
 			SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
@@ -156,13 +160,13 @@ namespace Shapes {
 		void render(SDL_Renderer* renderer) const {
 			if (!filled) {
 				SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // Set the color of the rectangle
-				SDL_Rect rect = { topLeft.x, topLeft.y, width, height };
-				SDL_RenderDrawRect(renderer, &rect); // Draw the rectangle 
+				SDL_FRect rect = { topLeft.x, topLeft.y, width, height };
+				SDL_RenderDrawRectF(renderer, &rect); // Draw the rectangle 
 			}
 			else {
 				SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // Set the color of the rectangle
-				SDL_Rect rect = { topLeft.x, topLeft.y, width, height };
-				SDL_RenderFillRect(renderer, &rect); // Draw the rectangle 
+				SDL_FRect rect = { topLeft.x, topLeft.y, width, height };
+				SDL_RenderFillRectF(renderer, &rect); // Draw the rectangle 
 			}
 		}
 
