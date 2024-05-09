@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 #include <thread>
+#include <cmath>
 
 
 class MyTimer_us {
@@ -30,19 +31,37 @@ public:
 		frameEndTime = t_now();
 	}
 
-	void logFPS() {
+	void logFPS() { // SEEMS TO BE BROKEN !!!
 		computeFrameDuration();
 
 		auto currentTime = t_now();
-		if (currentTime - outputTime >= std::chrono::microseconds(250000)) {
+		if (currentTime - outputTime >= std::chrono::microseconds(200000)) {
 			system("cls");
-			std::cout << "\rFPS: " << (1000000.0 / frameDuration.count()) << std::endl; // Print FPS
-			std::cout << "\rFRAME TIME: " << frameDuration.count() << std::flush; // Print frame time
-			std::cout << std::endl; // Move to the next line
+			std::cout << "\rFPS: " << getFPS() << std::endl; // Print FPS
+			std::cout << "\rFRAME TIME: " << getFrameTime_us() << std::endl; // Print frame time
 
 			outputTime = currentTime; // Update output time
 		}
 	}
+
+	static std::chrono::duration<double, std::micro> getFrameDuration(MyTimer_us* timer) {
+		return (*timer).frameDuration;
+	}
+
+	static void capFPS(int fpscap, std::chrono::duration<double, std::micro> frameDuration, MyTimer_us* timer) {
+		double desiredFrameDuration = (1000000.0 / fpscap);
+		std::chrono::duration<double, std::micro> desiredFD_us = std::chrono::duration<double, std::micro>(desiredFrameDuration); // DONT convert to std::chrono::milliseconds, it doesnt work
+
+		if (frameDuration < desiredFD_us) {
+			std::this_thread::sleep_for(desiredFD_us - frameDuration);
+		}
+
+	}
+
+	std::chrono::duration<double, std::micro> getTotalTimeElapsed() {
+		return t_now() - startTime; // Time between now and program start
+	}
+
 
 
 private:
@@ -62,12 +81,16 @@ private:
 		return std::chrono::steady_clock::now(); // Helper function to shorten this line
 	}
 
-	std::chrono::duration<double, std::micro> getTotalTimeElapsed() {
-		return t_now() - startTime; // Time between now and program start
-	}
-
 	std::chrono::duration<double, std::micro>  getOutputTimeElapsed() {
 		return t_now() - outputTime;
+	}
+
+	double getFPS() {
+		return 1000000.0 / frameDuration.count();
+	}
+
+	double getFrameTime_us() {
+		return frameDuration.count();
 	}
 
 };
