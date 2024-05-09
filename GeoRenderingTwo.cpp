@@ -129,6 +129,8 @@ public:
 	
 
 		SDL_RenderPresent(renderer);
+
+		// capFPS(settings.frameRateCap, MyTimer_us::getFrameDuration());
 	}
 
 	void clean() {
@@ -143,6 +145,7 @@ public:
 	bool isRunning() {
 		return running;
 	}
+
 
 
 
