@@ -10,6 +10,7 @@
 #include <SDL_ttf.h>
 #include <vector>
 #include <string>
+#include <cmath>
 
 // Problem: SDL only offers Points and Rectangles, I'd like to extend that for more shapes
 // NOT TRUE: There are other geometry rendering functions, need to investigate those
@@ -19,8 +20,8 @@ namespace Shapes {
 
 	struct Point {
 
-		int x;
-		int y;
+		float x;
+		float y;
 
 	};
 
@@ -52,6 +53,10 @@ namespace Shapes {
 		SDL_Color getColor() {
 			return color;
 		}
+
+		void moveShape() {}
+
+		void rotateShapeAbout() {}
 
 
 
@@ -149,23 +154,31 @@ namespace Shapes {
 	class Rectangle : public Shape {
 	public:
 
-		Rectangle(Point point, int size) : topLeft(point), width(size), height(size), filled(false) {}
+		Rectangle(Point point, float size) : topLeft(point), width(size), height(size), filled(false) {
+			rect = { topLeft.x, topLeft.y, width, height };
+		}
 
-		Rectangle(Point point, int size, bool fld) : topLeft(point), width(size), height(size), filled(fld) {}
+		Rectangle(Point point, float size, bool fld) : topLeft(point), width(size), height(size), filled(fld) {
+			rect = { topLeft.x, topLeft.y, width, height };
+		}
 
-		Rectangle(Point point, int wid, int hei) : topLeft(point), width(wid), height(hei), filled(false) {}
+		Rectangle(Point point, float wid, float hei) : topLeft(point), width(wid), height(hei), filled(false) {
+			rect = { topLeft.x, topLeft.y, width, height };
+		}
 
-		Rectangle(Point point, int wid, int hei, bool fld) : topLeft(point), width(wid), height(hei), filled(fld) {}
+		Rectangle(Point point, float wid, float hei, bool fld) : topLeft(point), width(wid), height(hei), filled(fld) {
+			rect = { topLeft.x, topLeft.y, width, height };
+		}
 
 		void render(SDL_Renderer* renderer) const {
 			if (!filled) {
 				SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // Set the color of the rectangle
-				SDL_FRect rect = { topLeft.x, topLeft.y, width, height };
+				
 				SDL_RenderDrawRectF(renderer, &rect); // Draw the rectangle 
 			}
 			else {
 				SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // Set the color of the rectangle
-				SDL_FRect rect = { topLeft.x, topLeft.y, width, height };
+				
 				SDL_RenderFillRectF(renderer, &rect); // Draw the rectangle 
 			}
 		}
@@ -190,11 +203,11 @@ namespace Shapes {
 			return { topLeft.x + (width / 2), topLeft.y + (height / 2) };
 		}
 
-		int getWidth() {
+		float getWidth() {
 			return width;
 		}
 
-		int getHeight() {
+		float getHeight() {
 			return height;
 		}
 
@@ -204,8 +217,8 @@ namespace Shapes {
 
 		bool isPointInside(Point point) {
 			// Check if a given point is inside the rectangle
-			int& x = point.x;
-			int& y = point.y;
+			float& x = point.x;
+			float& y = point.y;
 
 			if ((x > topLeft.x) && (x < topLeft.x + width) && (y > topLeft.y) && (y < topLeft.y + height)) {
 				return true;
@@ -215,24 +228,69 @@ namespace Shapes {
 			}
 		}
 
+		void move(float dx, float dy) {
+			topLeft.x += dx;
+			topLeft.y += dy;
+
+			rect.x += dx;
+			rect.y += dy;
+		
+		
+		}
+
+		void rotate(float& angle, float& size) {
+			
+
+			// Calculate the center of the square
+			float centerX = topLeft.x + (size / 2);
+			float centerY = topLeft.y + (size / 2);
+			
+
+			// Calculate the sine and cosine of the rotation angle
+			float cosTheta = cos(angle);
+			float sinTheta = sin(angle);
+
+			// Rotate each vertex of the square around the center
+			Point newTopLeft;
+			newTopLeft.x = centerX + (topLeft.x - centerX) * cosTheta - (topLeft.y - centerY) * sinTheta;
+			newTopLeft.y = centerY + (topLeft.x - centerX) * sinTheta + (topLeft.y - centerY) * cosTheta;
+
+			// Update the position of the square
+			topLeft = newTopLeft;
+		}
+
+
+		SDL_FRect getFRect() {
+		
+			return rect;
+
+		}
+
 
 
 	private:
 		// A rectangle is stored as the top left point and the width and height. We can use simple functions to get other desired points, such as the other corners
 		Point topLeft;
+		SDL_FRect rect;
 
-		int width;
-		int height;
+
+		float width;
+		float height;
 		bool filled;
 
 
 	}; // Wrapper for SDL Rectangle class(es?)
 
 	class Square : public Rectangle {
+	public:
 
-		Square(Point topLeft, int size) : Rectangle(topLeft, size, size) {}
+		Square(Point topLeft, float size) : Rectangle(topLeft, size, size) {}
 
-		Square(Point topLeft, int size, bool fld) : Rectangle(topLeft, size, size, fld) {}
+		Square(Point topLeft, float size, bool fld) : Rectangle(topLeft, size, size, fld) {}
+
+		float size;
+
+
 
 	};
 
