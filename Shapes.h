@@ -25,6 +25,18 @@ namespace Shapes {
 
 	};
 
+	float distanceBetweenPoints(Point p1, Point p2) {
+	
+		return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
+
+	}
+
+	float angleFromXAxis(Point p1, Point p2) {
+	
+		return atan((p2.y - p1.y) / (p2.x - p1.x));
+
+	}
+
 
 	class Renderable {}; // Interface to pass shapes to a separate SDL renderer or rendering class --> This shouldn't worry about the details of the rendering, just how to do it based on the info provided --> abstract class?
 
