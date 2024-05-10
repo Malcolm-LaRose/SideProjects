@@ -35,6 +35,7 @@ struct MySettings {
 
 
 
+
 };
 
 class MyDefaultObject {
@@ -52,13 +53,8 @@ public:
 
 	void moveObject(float dx, float dy) {
 
-		// sq.move(dx, dy);
-	
-	}
+		sq.move(dx, dy);
 
-	void rotateObject(float rotationSpeed, SDL_Renderer* renderer) {
-	
-		sq.rotate(rotationSpeed, size);
 	}
 
 private:
@@ -80,7 +76,7 @@ public:
 
 	}
 
-	// Init SDL
+
 	void init() {
 		running = true;
 
@@ -141,11 +137,14 @@ public:
 		case SDL_QUIT:
 			running = false;
 			break;
+
 			// Add cases
+
 		default:
 			break;
 
 		}
+
 	}
 
 	void update(Uint32 frameTime) {
@@ -158,8 +157,6 @@ public:
 		float dx = 1000.0f * deltaTime; // Adjust the value as needed for desired speed
 		float dy = 1000.0f * deltaTime; // Adjust the value as needed for desired speed
 		defaultRectangle.moveObject(dx, dy); // Move the object based on scaled movement
-
-		defaultRectangle.rotateObject(10.0f * deltaTime, renderer);
 
 		// Perform other updates here as needed
 
@@ -206,7 +203,7 @@ private:
 	SDL_Renderer* renderer = nullptr;
 
 	MyDefaultObject defaultRectangle;
-	
+
 
 	int screenWidth; // Can change with user input
 	int screenHeight;
@@ -223,6 +220,8 @@ private:
 	}
 
 	// Internal member functions
+
+
 
 
 };
@@ -258,7 +257,7 @@ int main(int argc, char* argv[]) {
 		frameStart = SDL_GetTicks();
 
 		wrapper->handleEvents(); // Event handling
-		wrapper->update(frameTime); // Game logic --> Give frame time for delta time
+		wrapper->update(frameTime); // Game logic
 		wrapper->render(); // Rendering
 
 		// timer->markFrameEndTime(); 
