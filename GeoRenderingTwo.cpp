@@ -41,8 +41,8 @@ struct MySettings {
 class MyDefaultObject {
 public:
 	MyDefaultObject() : size(200), defaultRect({ settings.screenCenter.x - (size / 2), settings.screenCenter.y - (size / 2) }),
-		rectPos({ settings.screenCenter.x - (size / 2), settings.screenCenter.y - (size / 2) }),
-		sq(rectPos, size, true) {
+		sqPos({ settings.screenCenter.x - (size / 2), settings.screenCenter.y - (size / 2) }),
+		sq(sqPos, size, true) {
 		defaultRectColor = Color::getSDLColor(Color::PHSORNG);
 		sq.setColor(defaultRectColor);
 	}
@@ -51,13 +51,20 @@ public:
 		sq.render(renderer);
 	}
 
+	void moveObject(float dx, float dy) {
+
+		sq.move(dx, dy);
+	
+	}
+
 private:
 	const MySettings& settings = MySettings::getInstance();
 	float size;
 	SDL_Color defaultRectColor;
 	SDL_FRect defaultRect;
-	Shapes::Point rectPos;
+	Shapes::Point sqPos;
 	Shapes::Square::Rectangle sq;
+
 };
 
 
@@ -140,11 +147,20 @@ public:
 
 	}
 
-	void update() {
-		count++; // Game frame counter
+	void update(Uint32 frameTime) {
+		Uint32 prevFrameTime = 0; // Static variable to store previous frame time
 
+		float deltaTime = (frameTime - prevFrameTime) / 1000.0f; // Calculate delta time in seconds
+		prevFrameTime = frameTime; // Update previous frame time
 
+		// Calculate movement based on delta time
+		float dx = 1000.0f * deltaTime; // Adjust the value as needed for desired speed
+		float dy = 1000.0f * deltaTime; // Adjust the value as needed for desired speed
+		defaultRectangle.moveObject(dx, dy); // Move the object based on scaled movement
 
+		// Perform other updates here as needed
+
+		count++;
 	}
 
 	void render() {
@@ -203,12 +219,6 @@ private:
 
 	}
 
-	void defaultRender() {
-		
-	}
-
-
-
 	// Internal member functions
 
 
@@ -247,7 +257,7 @@ int main(int argc, char* argv[]) {
 		frameStart = SDL_GetTicks();
 
 		wrapper->handleEvents(); // Event handling
-		wrapper->update(); // Game logic
+		wrapper->update(frameTime); // Game logic
 		wrapper->render(); // Rendering
 
 		// timer->markFrameEndTime(); 
