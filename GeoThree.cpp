@@ -20,6 +20,10 @@
 // O_classMember --> Unique name for an object class member
 
 
+// Known problems
+// FPS is coupled to game time, can't change FPS without changing the speed of the game
+
+
 struct MySettings {
 
 	static MySettings& getInstance() {
@@ -36,7 +40,7 @@ struct MySettings {
 
 	const SDL_Color bgColor = Color::getSDLColor(Color::EIGENGRAU);
 
-	const int frameRateCap = 60;
+	const int frameRateCap = 244; // Set to 1000 for ~max (unstable)
 
 
 
@@ -45,6 +49,12 @@ struct MySettings {
 
 class GameObject {
 public:
+	/*GameObject(SDL_Renderer* renderer, float x, float y) {
+		O_renderer = renderer;
+		O_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+			SDL_TEXTUREACCESS_TARGET, destRect.w, destRect.h);
+	}*/
+
 	GameObject(const char* texturePath, SDL_Renderer* renderer, float x, float y) {
 
 		O_renderer = renderer;
@@ -80,19 +90,26 @@ public:
 
 	}
 
-	void renderToTexture() {
-
-		SDL_Rect rect = { settings.screenCenter.x, settings.screenCenter.y, 200, 200 };
-		SDL_SetRenderDrawColor(O_renderer, settings.bgColor.r, settings.bgColor.g, settings.bgColor.b, settings.bgColor.a);
-		SDL_RenderFillRect(O_renderer, &rect);
-
-		O_texture = SDL_CreateTexture(O_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 200, 200);
-
-		SDL_SetRenderTarget(O_renderer, O_texture);
-		SDL_RenderCopy(O_renderer, O_texture, nullptr, nullptr);
-		SDL_SetRenderTarget(O_renderer, nullptr);
-
-	}
+	//void renderToTexture() {
+	//	// Set the texture as the rendering target
+	//	SDL_SetRenderTarget(O_renderer, O_texture);
+	//
+	//	// Render the object onto the texture
+	//	SDL_RenderCopyF(O_renderer, O_texture, &srcRect, &destRect);
+	//
+	//	// Reset the rendering target to the default renderer
+	//	SDL_SetRenderTarget(O_renderer, nullptr);
+	//}
+	//
+	//void createTexture() {
+	//
+	//	SDL_Rect rect = { settings.screenCenter.x, settings.screenCenter.y, 200, 200 };
+	//	SDL_SetRenderDrawColor(O_renderer, settings.bgColor.r, settings.bgColor.g, settings.bgColor.b, settings.bgColor.a);
+	//	SDL_RenderFillRect(O_renderer, &rect);
+	//	// Create a texture to hold the rendered content
+	//	O_texture = SDL_CreateTexture(O_renderer, SDL_PIXELFORMAT_RGBA8888,
+	//		SDL_TEXTUREACCESS_TARGET, destRect.w, destRect.h);
+	//}
 
 
 private:
@@ -173,6 +190,7 @@ public:
 		}
 
 		testPlayer = new GameObject("Untitled.png", renderer, 0, 0);
+		// testPlayer = new GameObject(renderer, 0, 0);
 
 	}
 
