@@ -1,6 +1,10 @@
 // color.h
+#pragma once
+
 #ifndef COLOR_H
 #define COLOR_H
+
+
 
 #include <SDL.h>
 
@@ -11,7 +15,9 @@
 // or using namespace Color; --> (risky) 
 // function(namedColor) 
 
-struct Color {
+class Color {
+public:
+
     enum NamedColor {
         WHITE,
         BLACK,
@@ -21,6 +27,8 @@ struct Color {
         PHSORNG,
         MAGENTA,
         DRKGRY,
+        EIGENGRAU,
+        LANDLORDWHITE,
         TRANSP
     };
 
@@ -35,6 +43,8 @@ struct Color {
         case PHSORNG: return { 255, 204, 0, 255 };
         case MAGENTA: return { 255, 0, 255, 255 };
         case DRKGRY: return { 55, 55, 55, 255 };
+        case EIGENGRAU: return { 22, 22, 29, 255 };
+        case LANDLORDWHITE: return { 250, 249, 246, 255 };
         case TRANSP: return { 0, 0, 0, 0 };
         default:      throw std::invalid_argument("Invalid named color");
         }
@@ -51,6 +61,8 @@ struct Color {
         case PHSORNG: return { 255, 204, 0 };
         case MAGENTA: return { 255, 0, 255 };
         case DRKGRY: return { 55, 55, 55, };
+        case EIGENGRAU: return { 22, 22, 29, 255 };
+        case LANDLORDWHITE: return { 250, 249, 246, 255 };
         case TRANSP: return { 0, 0, 0, 0 };
         default:      throw std::invalid_argument("Invalid named color");
         }
@@ -67,6 +79,8 @@ struct Color {
         case PHSORNG: return { 255, 204, 0, 255 };
         case MAGENTA: return { 255, 0, 255, 255 };
         case DRKGRY: return { 55, 55, 55, 255 };
+        case EIGENGRAU: return { 22, 22, 29, 255 };
+        case LANDLORDWHITE: return { 250, 249, 246, 255 };
         case TRANSP: return { 0, 0, 0, 0 };
         default:      throw std::invalid_argument("Invalid named color");
         }
